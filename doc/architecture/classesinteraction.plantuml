@@ -1,0 +1,41 @@
+@startuml
+
+!includesub ./classesinheritance.plantuml!FACTORY_CLASSES
+!includesub ./classesinheritance.plantuml!PRODUCT_CLASSES
+top to bottom direction
+
+'removing the interfaces
+remove Parser
+remove FunctionFactory
+remove ArgumentFactory
+remove AttributeFactory
+remove ClassFactory
+remove FunctionProduct
+remove ArgumentProduct
+remove AttributeProduct
+remove ClassProduct
+
+
+class ParserFactory{
+    + Parser create_parser(language)
+}
+
+ParserFactory::create_parser --> LSParser : Produces
+
+
+LSClassFactory::create_class --> LSClassProduct: Produces
+
+
+LSClassFactory --> LSFunctionFactory: uses
+
+LSFunctionFactory::create_class --> LSFunctionProduct: Produces
+
+
+LSClassFactory --> LSAttributeFactory: uses
+LSAttributeFactory::create_class --> LSAttributeProduct: Produces
+
+
+LSFunctionFactory --> LSArgumentFactory: uses
+LSArgumentFactory::create_class --> LSArgumentProduct: Produces
+
+@enduml

@@ -1,0 +1,16 @@
+@startuml
+
+set namespaceSeparator ::
+
+namespace test::coucou{
+
+Interface Parser{
+    + {abstract} get_classes()
+    - {abstract} get_functions()
+}
+
+interface ArgumentFactory{
+    # {abstract} create_argument(argument_string)
+}
+}
+@enduml

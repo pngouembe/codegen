@@ -1,0 +1,26 @@
+@startuml
+
+!includesub ./interfaces.plantuml!FACTORY_INTERFACES
+!includesub ./interfaces.plantuml!PARSER_INTERFACE
+!includesub ./classesinheritance.plantuml!FACTORY_CLASSES
+left to right direction
+class ClassFactoryCreator{
+    + ClassFactory create_factory(language)
+}
+class FunctionFactoryCreator{
+    + FunctionFactory create_factory(language)
+}
+class AttributeFactoryCreator{
+    + AttributeFactory create_factory(language)
+}
+class ArgumentFactoryCreator{
+    + ArgumentFactory create_factory(language)
+}
+
+ClassFactoryCreator::create_factory --> LSClassFactory: Produces
+FunctionFactoryCreator::create_factory --> LSFunctionFactory: Produces
+AttributeFactoryCreator::create_factory --> LSAttributeFactory: Produces
+ArgumentFactoryCreator::create_factory --> LSArgumentFactory: Produces
+
+
+@enduml

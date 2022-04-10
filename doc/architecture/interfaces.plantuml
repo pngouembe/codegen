@@ -1,0 +1,42 @@
+@startuml
+left to right direction
+
+together {
+!startsub FACTORY_INTERFACES
+    interface ClassFactory{
+        + {abstract} ClassProduct create_class(class_string)
+    }
+    interface FunctionFactory{
+        + {abstract} create_function(function_string)
+    }
+    interface AttributeFactory{
+        + {abstract} create_attribute(attribute_string)
+    }
+    interface ArgumentFactory{
+        + {abstract} create_argument(argument_string)
+    }
+!endsub
+}
+
+together {
+!startsub PRODUCT_INTERFACES
+    interface ClassProduct
+    interface FunctionProduct
+    interface AttributeProduct
+    interface ArgumentProduct
+!endsub
+}
+
+!startsub PARSER_INTERFACE
+Interface Parser{
+    + {abstract} get_classes()
+    + {abstract} get_functions()
+}
+!endsub
+
+ClassFactory -[hidden]-> ClassProduct
+FunctionFactory -[hidden]-> FunctionProduct
+AttributeFactory -[hidden]-> AttributeProduct
+ArgumentFactory -[hidden]-> ArgumentProduct
+
+@enduml

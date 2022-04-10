@@ -1,0 +1,79 @@
+@startuml Main class Diagram
+
+!include ./interfaces.plantuml
+!include ./classesinheritance.plantuml
+
+top to bottom direction
+
+''''''''''''''''''''''''Parser related'''''''''''''''''''''''''
+
+class ParserFactory{
+    + create_parser(language)
+}
+
+ParserFactory::create_parser -down-> LSParser : Produces
+
+'''''''''''''''''''''''Class related'''''''''''''''''''''''''
+package class_related{
+
+class ClassFactoryCreator{
+    + ClassFactory create_factory(language)
+}
+
+
+
+LSParser -right-> ClassFactoryCreator: uses
+ClassFactoryCreator::create_factory -down-> LSClassFactory: Produces
+LSClassFactory::create_class --> LSClassProduct: Produces
+
+
+
+}
+
+''''''''''''''''''''''''Function related''''''''''''''''''''''''''''
+
+
+package function_related {
+class FunctionFactoryCreator{
+    + FunctionFactory create_factory(language)
+}
+
+
+LSParser -left-> FunctionFactoryCreator: uses
+LSClassFactory --> FunctionFactoryCreator: uses
+
+FunctionFactoryCreator::create_factory --> LSFunctionFactory: Produces
+LSFunctionFactory::create_class --> LSFunctionProduct: Produces
+
+
+}
+
+'''''''''''''''''''''''Attribute related'''''''''''''''''''''''''''''
+package attribute_related {
+
+class AttributeFactoryCreator{
+    + AttributeFactory create_factory(language)
+}
+
+
+LSClassFactory -down-> AttributeFactoryCreator: uses
+AttributeFactoryCreator::create_factory --> LSAttributeFactory: Produces
+LSAttributeFactory::create_class --> LSAttributeProduct: Produces
+
+
+}
+'''''''''''''''''''''''''Argument related''''''''''''''''''''''''''''
+package argument_related {
+
+class ArgumentFactoryCreator{
+    + ArgumentFactory create_factory(language)
+}
+
+
+LSFunctionFactory --> ArgumentFactoryCreator: uses
+ArgumentFactoryCreator::create_factory --> LSArgumentFactory: Produces
+LSArgumentFactory::create_class --> LSArgumentProduct: Produces
+
+
+}
+@enduml

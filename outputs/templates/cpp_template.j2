@@ -1,0 +1,40 @@
+{#- This is a C++ code generator jinja2 template -#}
+
+{%- if cls.namespaces %}
+{%- for ns in cls.namespaces %}
+namespace {{ns}} {
+{%- endfor %}
+{%- endif %}
+
+class {{cls.name}}{
+
+{#- Adding class public functions -#}
+{%- if cls.public_functions %}
+public:
+{%- endif %}
+{%- for f in cls.public_functions %}
+    {{f}}
+{%- endfor %}
+
+{#- Adding class private functions -#}
+{%- if cls.private_functions %}
+private:
+{%- endif %}
+{%- for f in cls.private_functions %}
+    {{f}}
+{%- endfor %}
+
+{#- Adding class protected functions -#}
+{%- if cls.protected_functions %}
+protected:
+{%- endif %}
+{%- for f in cls.protected_functions %}
+    {{f}}
+{%- endfor %}
+}
+
+{% if cls.namespaces -%}
+{%- for ns in cls.namespaces|reverse %}
+} //{{ns}}
+{%- endfor %}
+{%- endif %}

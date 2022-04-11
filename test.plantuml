@@ -1,16 +1,16 @@
 @startuml
 
-set namespaceSeparator ::
+' set namespaceSeparator ::
 
 namespace test::coucou{
 
-Interface Parser{
-    + {abstract} get_classes()
-    - {abstract} get_functions()
+Interface TestClass1{
+    + {abstract} void public_function(int arg)
+    - {abstract} ns::int private_function(char arg1, int arg2)
 }
 
-interface ArgumentFactory{
-    # {abstract} create_argument(argument_string)
+interface TestClass2{
+    # {abstract} ns1::ns2::char protected_function(ns::int arg1 = 0, char arg2 = NULL)
 }
 }
 @enduml

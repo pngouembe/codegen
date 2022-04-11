@@ -1,7 +1,7 @@
 """CPP class objects"""
 
-from dataclasses import dataclass, field
-from typing import List
+from dataclasses import dataclass
+from enum import Enum
 
 from internal.arguments import InternalArgument
 from internal.attributes import InternalAttribute
@@ -18,84 +18,65 @@ from outputs.interfaces import (LanguageSpecificArgument,
                                 LanguageSpecificGenerator,
                                 LanguageSpecificType)
 
+CPP_NAMESPACE_SEP = "::"
 
-class CppTypes(LanguageSpecificType):
+
+class CppTypeEnum(Enum):
     VOID = 'void'
     INT = 'int'
     CHAR = 'char'
 
+# TODO: Check known types
+
+
+@dataclass(repr=False)
+class CppTypes(LanguageSpecificType):
     @classmethod
     def from_internal(cls, internal: InternalType):
-        return cls(internal)
+
+        return cls(name=internal.name)
 
 
-@dataclass
+@dataclass(repr=False)
 class CppArgument(LanguageSpecificArgument):
-    name: str
-    type: LanguageSpecificType = CppTypes.VOID
-
     @classmethod
     def from_internal(cls, internal: InternalArgument):
-        return cls(internal.name)
-
-    def __repr__(self) -> str:
-        if self.name:
-            return f"{self.type.value} {self.name}"
-        else:
-            return ""
+        a_type = CppTypes.from_internal(
+            internal.type) if internal.type else None
+        return cls(name=internal.name,
+                   type=a_type,
+                   default_value=internal.default_value)
 
 
-@dataclass
+@dataclass(repr=False)
 class CppAttribute(LanguageSpecificAttribute):
-    name: str
-    visibility: Visibility = Visibility.PUBLIC
-    type: LanguageSpecificType = CppTypes.VOID
-
     @classmethod
     def from_internal(cls, internal: InternalAttribute):
-        return cls(internal.name)
+        a_type = CppTypes.from_internal(
+            internal.type) if internal.type else None
+        return cls(name=internal.name,
+                   type=a_type,
+                   default_value=internal.default_value,
+                   visibility=internal.visibility)
 
 
-@dataclass
+@dataclass(repr=False)
 class CppFunction(LanguageSpecificFunction):
-    name: str
-    arguments: List[LanguageSpecificArgument] = field(default_factory=list)
-    return_type: LanguageSpecificType = CppTypes.VOID
-    visibility: Visibility = Visibility.PUBLIC
 
     @classmethod
     def from_internal(cls, internal: InternalFunction):
         a_list = [CppArgument.from_internal(a) for a in internal.arguments]
-        try:
-            return_type = CppTypes(internal.return_type)
-        except:
-            return_type = CppTypes.VOID
+        return_type = CppTypes.from_internal(
+            internal.return_type) if internal.return_type else None
 
         return cls(name=internal.name,
                    arguments=a_list,
                    return_type=return_type,
                    visibility=internal.visibility)
 
-    def __repr__(self) -> str:
-        args = [repr(a) for a in self.arguments]
-        return "{} {}({})".format(self.return_type.value, self.name, ",".join(args))
 
-
-@dataclass
+@dataclass(repr=False)
 class CppClass(LanguageSpecificClass):
-    name: str
-    functions: List[LanguageSpecificFunction] = field(default_factory=list)
-    attributes: List[LanguageSpecificAttribute] = field(default_factory=list)
-    namespaces: List[str] = None
-    parent_classes: List[str] = field(default_factory=list)
-
-    def __post_init__(self) -> None:
-        self.public_functions = [
-            f for f in self.functions if f.visibility == Visibility.PUBLIC]
-        self.private_functions = [
-            f for f in self.functions if f.visibility == Visibility.PRIVATE]
-        self.protected_functions = [
-            f for f in self.functions if f.visibility == Visibility.PROTECTED]
 
     @classmethod
     def from_internal(cls, internal: InternalClass):
@@ -118,5 +99,16 @@ class CppGenerator(LanguageSpecificGenerator):
         self.fct_list = [CppFunction.from_internal(f)
                          for f in unit_translation.functions]
 
+        # TODO: Create include guard from the file path or global namespace
+        include_guard = "dummy_include_guard"
+
+        # TODO: Create the include list based on the type encoutered during unit translation
+        includes_list = ['<iostream>', '"my_test_header.hpp"']
+
+        sep1 = "-"*80+"\n"
+        sep2 = "\n"+"*"*80+"\n"
+
         for cls in self.cls_list:
-            print(template.render(cls=cls))
+            print(sep1)
+            print(template.render(cls=cls, include_guard=include_guard,
+                  includes_list=includes_list), end=sep2)

@@ -5,15 +5,15 @@
     <XMI.content>
         <UML:Model name="PlantUML" xmi.id="model1">
             <UML:Namespace.ownedElement>
-                <UML:Class isInterface="true" name="Parser" namespace="test.coucou" xmi.id="cl0003">
+                <UML:Class isInterface="true" name="TestClass1" namespace="test::coucou" xmi.id="cl0003">
                     <UML:Classifier.feature>
-                        <UML:Operation name="get_classes()" visibility="public" xmi.id="att5"/>
-                        <UML:Operation name="get_functions()" visibility="private" xmi.id="att6"/>
+                        <UML:Operation name="void public_function(int arg)" visibility="public" xmi.id="att5"/>
+                        <UML:Operation name="ns::int private_function(char arg1, int arg2)" visibility="private" xmi.id="att6"/>
                     </UML:Classifier.feature>
                 </UML:Class>
-                <UML:Class isInterface="true" name="ArgumentFactory" namespace="test.coucou" xmi.id="cl0004">
+                <UML:Class isInterface="true" name="TestClass2" namespace="test::coucou" xmi.id="cl0004">
                     <UML:Classifier.feature>
-                        <UML:Operation name="create_argument(argument_string)" visibility="protected" xmi.id="att7"/>
+                        <UML:Operation name="ns1::ns2::char protected_function(ns::int arg1 = 0, char arg2 = NULL)" visibility="protected" xmi.id="att7"/>
                     </UML:Classifier.feature>
                 </UML:Class>
             </UML:Namespace.ownedElement>

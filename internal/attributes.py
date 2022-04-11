@@ -1,11 +1,9 @@
 from dataclasses import dataclass
 
-from internal.types import InternalType
+from internal.arguments import InternalArgument
 from internal.visibility import Visibility
 
 
 @dataclass
-class InternalAttribute:
-    name: str
+class InternalAttribute(InternalArgument):
     visibility: Visibility = Visibility.PUBLIC
-    type: InternalType = None

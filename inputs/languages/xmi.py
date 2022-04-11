@@ -1,13 +1,16 @@
 """XMI parser"""
 import xml.etree.ElementTree as ET
 from dataclasses import dataclass
+from os import lseek
 
 from inputs.interfaces import LanguageSpecificParser
 from internal.arguments import InternalArgument
 from internal.classes import InternalClass
 from internal.functions import InternalFunction
 from internal.translation import UnitTranslation
+from internal.types import InternalType
 from internal.visibility import Visibility
+from outputs.languages.cpp import CPP_NAMESPACE_SEP
 
 ns = {'UML': 'href://org.omg/UML/1.3'}
 visibility_converter = {'public': Visibility.PUBLIC,
@@ -30,20 +33,41 @@ class CppXmiParser(LanguageSpecificParser):
             functions = list()
             for f in cls.iterfind(".//UML:Operation", ns):
                 tmp = f.get("name")
-                print(tmp)
-                f_name, args = tmp.replace(")", "").split("(", maxsplit=1)
-                args = [InternalArgument(name=a) for a in args.split(",")]
-                print(args)
+                tmp, tmp_args = tmp.replace(")", "").split("(", maxsplit=1)
+                args = list()
+                for a in tmp_args.split(","):
+                    a_default_value = None
+                    try:
+                        a, a_default_value = a.rsplit("=")
+                        a_default_value = a_default_value.strip()
+                    except ValueError:
+                        pass
+                    finally:
+                        a = a.strip()
+
+                    try:
+                        a_type, a_name = a.rsplit(maxsplit=1)
+                        a_type = a_type.strip()
+                        a_name = a_name.strip()
+                        a_type = InternalType(a_type)
+                    except ValueError:
+                        a_name = a
+                        a_type = None
+                    finally:
+                        args.append(InternalArgument(
+                            name=a_name, type=a_type, default_value=a_default_value))
+                r_type, f_name = tmp.rsplit(maxsplit=1)
+                return_type = InternalType(r_type)
 
                 visibility = visibility_converter[f.get("visibility")]
                 functions.append(InternalFunction(
                     name=f_name,
                     arguments=args,
-                    return_type=None,
+                    return_type=return_type,
                     visibility=visibility))
 
             if cls.get("namespace") != model_ns:
-                namespaces = cls.get("namespace").split(".")
+                namespaces = cls.get("namespace").split(CPP_NAMESPACE_SEP)
             else:
                 namespaces = None
 

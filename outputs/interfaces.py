@@ -14,35 +14,35 @@ class LanguageSpecificGenerator:
         pass
 
 
-@dataclass
-class LanguageSpecificClass:
+@dataclass(repr=False)
+class LanguageSpecificClass(InternalClass):
     @classmethod
     def from_internal(cls, internal: InternalClass):
         pass
 
 
-@dataclass
-class LanguageSpecificFunction:
+@dataclass(repr=False)
+class LanguageSpecificFunction(InternalFunction):
     @classmethod
     def from_internal(cls, internal: InternalFunction):
         pass
 
 
-@dataclass
-class LanguageSpecificAttribute:
+@dataclass(repr=False)
+class LanguageSpecificAttribute(InternalAttribute):
     @classmethod
     def from_internal(cls, internal: InternalAttribute):
         pass
 
 
-@dataclass
-class LanguageSpecificArgument:
+@dataclass(repr=False)
+class LanguageSpecificArgument(InternalArgument):
     @classmethod
     def from_internal(cls, internal: InternalArgument):
         pass
 
 
-class LanguageSpecificType(Enum):
+class LanguageSpecificType(InternalType):
     @classmethod
     def from_internal(cls, internal: InternalType):
         pass

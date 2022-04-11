@@ -1,4 +1,12 @@
 {#- This is a C++ code generator jinja2 template -#}
+/* This is a Dummy Header to demonstrate */
+
+#ifndef {{include_guard|upper}}
+#define {{include_guard|upper}}
+
+{% for include in includes_list -%}
+#include {{include}}
+{% endfor %}
 
 {%- if cls.namespaces %}
 {%- for ns in cls.namespaces %}
@@ -38,3 +46,5 @@ protected:
 } //{{ns}}
 {%- endfor %}
 {%- endif %}
+
+#endif //{{include_guard|upper}}

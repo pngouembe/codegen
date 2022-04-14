@@ -1,0 +1,10 @@
+---
+
+'"Dummy_include.h"':
+  - "int"
+  - "char"
+
+<my_test_header.h>:
+  - void
+
+...

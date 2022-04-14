@@ -1,5 +1,4 @@
 #! python3
-from jinja2 import Environment, FileSystemLoader, PackageLoader
 
 from inputs.ifactory import ParserFactory
 from inputs.interfaces import LanguageSpecificParser
@@ -8,8 +7,6 @@ from internal.translation import UnitTranslation
 from outputs.interfaces import LanguageSpecificGenerator
 from outputs.ofactory import GeneratorFactory
 from outputs.supported_languages import OutputLanguages
-
-#from objects.parser.factory import ParserFactory
 
 if "__main__" == __name__:
 

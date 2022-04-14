@@ -1,7 +1,6 @@
 """CPP class objects"""
 
 from dataclasses import dataclass
-from enum import Enum
 
 from internal.arguments import InternalArgument
 from internal.attributes import InternalAttribute
@@ -9,7 +8,6 @@ from internal.classes import InternalClass
 from internal.functions import InternalFunction
 from internal.translation import UnitTranslation
 from internal.types import InternalType
-from internal.visibility import Visibility
 from jinja2 import Environment, PackageLoader
 from outputs.interfaces import (LanguageSpecificArgument,
                                 LanguageSpecificAttribute,
@@ -18,23 +16,46 @@ from outputs.interfaces import (LanguageSpecificArgument,
                                 LanguageSpecificGenerator,
                                 LanguageSpecificType)
 
+import yaml
+
+from os import path
+
 CPP_NAMESPACE_SEP = "::"
 
+USED_TYPES_SET = set()
+INCLUDE_FILES_SET = set()
+with open(path.join(path.dirname(__file__),"./cpp_types.yml")) as f:
+    INCLUDE_FILES_DICT = yaml.load(f)
 
-class CppTypeEnum(Enum):
-    VOID = 'void'
-    INT = 'int'
-    CHAR = 'char'
+print(INCLUDE_FILES_DICT)
 
-# TODO: Check known types
+# INCLUDE_FILES_DICT = {
+#     '"Dummy_include.h"': ["int", "char"],
+#     '<my_test_header.h>': ["void"]
+# }
 
+NS_INCLUDE_FILES_DICT = {
+    '"Dummy_include.h"': ["int", "char"],
+    '<my_test_header.h>': ["void"]
+}
+
+REVERSED_INCLUDE_FILES_DICT = {}
+for key, values in INCLUDE_FILES_DICT.items():
+    for val in values:
+        REVERSED_INCLUDE_FILES_DICT[val] = key
+for key, values in NS_INCLUDE_FILES_DICT.items():
+    for val in values:
+        REVERSED_INCLUDE_FILES_DICT["ns::"+val] = key
 
 @dataclass(repr=False)
 class CppTypes(LanguageSpecificType):
     @classmethod
     def from_internal(cls, internal: InternalType):
-
-        return cls(name=internal.name)
+        try:
+            INCLUDE_FILES_SET.add(REVERSED_INCLUDE_FILES_DICT[repr(internal)])
+        except KeyError:
+            print(f"Warning {internal!r} is an unknown type")
+        return cls(name=internal.name, namespace=internal.namespace, namespace_sep=CPP_NAMESPACE_SEP)
 
 
 @dataclass(repr=False)
@@ -100,10 +121,10 @@ class CppGenerator(LanguageSpecificGenerator):
                          for f in unit_translation.functions]
 
         # TODO: Create include guard from the file path or global namespace
-        include_guard = "dummy_include_guard"
+        include_guard = str.upper(unit_translation.name + "_hpp")
 
-        # TODO: Create the include list based on the type encoutered during unit translation
-        includes_list = ['<iostream>', '"my_test_header.hpp"']
+        includes_set = INCLUDE_FILES_SET.copy()
+        INCLUDE_FILES_SET.clear()
 
         sep1 = "-"*80+"\n"
         sep2 = "\n"+"*"*80+"\n"
@@ -111,4 +132,4 @@ class CppGenerator(LanguageSpecificGenerator):
         for cls in self.cls_list:
             print(sep1)
             print(template.render(cls=cls, include_guard=include_guard,
-                  includes_list=includes_list), end=sep2)
+                  includes_set=includes_set), end=sep2)

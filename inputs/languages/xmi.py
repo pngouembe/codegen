@@ -1,7 +1,7 @@
 """XMI parser"""
 import xml.etree.ElementTree as ET
 from dataclasses import dataclass
-from os import lseek
+from os import path
 
 from inputs.interfaces import LanguageSpecificParser
 from internal.arguments import InternalArgument
@@ -23,7 +23,7 @@ class CppXmiParser(LanguageSpecificParser):
         tree = ET.parse(file)
         root = tree.getroot()
 
-        unit = UnitTranslation()
+        unit = UnitTranslation(name=path.splitext(path.basename(file))[0])
 
         model_ns = root.find(".//UML:Model", ns).get("xmi.id")
 
@@ -47,15 +47,23 @@ class CppXmiParser(LanguageSpecificParser):
 
                     try:
                         a_type, a_name = a.rsplit(maxsplit=1)
-                        a_type = a_type.strip()
-                        a_name = a_name.strip()
-                        a_type = InternalType(a_type)
                     except ValueError:
                         a_name = a
                         a_type = None
-                    finally:
-                        args.append(InternalArgument(
-                            name=a_name, type=a_type, default_value=a_default_value))
+
+                    if a_type:
+                        a_type = a_type.strip()
+                        a_ns = None
+                        try:
+                            a_ns, a_type = a_type.rsplit(CPP_NAMESPACE_SEP, maxsplit=1)
+                            a_ns = a_ns.split(CPP_NAMESPACE_SEP)
+                        except ValueError:
+                            pass
+                        a_name = a_name.strip()
+                        a_type = InternalType(name=a_type, namespace=a_ns, namespace_sep=CPP_NAMESPACE_SEP)
+
+                    args.append(InternalArgument(name=a_name, type=a_type, default_value=a_default_value))
+
                 r_type, f_name = tmp.rsplit(maxsplit=1)
                 return_type = InternalType(r_type)
 

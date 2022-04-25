@@ -6,7 +6,7 @@ from os import path
 from inputs.interfaces import LanguageSpecificParser
 from internal.arguments import InternalArgument
 from internal.classes import InternalClass
-from internal.functions import InternalFunction
+from internal.functions import FunctionModifiers, InternalFunction
 from internal.translation import UnitTranslation
 from internal.types import InternalType
 from internal.visibility import Visibility
@@ -29,6 +29,7 @@ class CppXmiParser(LanguageSpecificParser):
 
         for cls in root.iterfind(".//UML:Class", ns):
             c_name = cls.get("name")
+            f_modifier = set({FunctionModifiers.ABSTRACT}) if cls.get("isInterface") == "true" else set()
 
             functions = list()
             for f in cls.iterfind(".//UML:Operation", ns):
@@ -72,7 +73,8 @@ class CppXmiParser(LanguageSpecificParser):
                     name=f_name,
                     arguments=args,
                     return_type=return_type,
-                    visibility=visibility))
+                    visibility=visibility,
+                    modifiers=f_modifier))
 
             if cls.get("namespace") != model_ns:
                 namespaces = cls.get("namespace").split(CPP_NAMESPACE_SEP)

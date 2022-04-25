@@ -93,7 +93,8 @@ class CppFunction(LanguageSpecificFunction):
         return cls(name=internal.name,
                    arguments=a_list,
                    return_type=return_type,
-                   visibility=internal.visibility)
+                   visibility=internal.visibility,
+                   modifiers=internal.modifiers)
 
 
 @dataclass(repr=False)

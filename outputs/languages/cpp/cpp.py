@@ -1,6 +1,9 @@
 """CPP class objects"""
 
+import yaml
+
 from dataclasses import dataclass
+from os import path
 
 from internal.arguments import InternalArgument
 from internal.attributes import InternalAttribute
@@ -16,36 +19,17 @@ from outputs.interfaces import (LanguageSpecificArgument,
                                 LanguageSpecificGenerator,
                                 LanguageSpecificType)
 
-import yaml
-
-from os import path
-
 CPP_NAMESPACE_SEP = "::"
-
-USED_TYPES_SET = set()
 INCLUDE_FILES_SET = set()
+
+# Initializing the types to include file dictionnary
 with open(path.join(path.dirname(__file__),"./cpp_types.yml")) as f:
     INCLUDE_FILES_DICT = yaml.load(f)
-
-print(INCLUDE_FILES_DICT)
-
-# INCLUDE_FILES_DICT = {
-#     '"Dummy_include.h"': ["int", "char"],
-#     '<my_test_header.h>': ["void"]
-# }
-
-NS_INCLUDE_FILES_DICT = {
-    '"Dummy_include.h"': ["int", "char"],
-    '<my_test_header.h>': ["void"]
-}
 
 REVERSED_INCLUDE_FILES_DICT = {}
 for key, values in INCLUDE_FILES_DICT.items():
     for val in values:
         REVERSED_INCLUDE_FILES_DICT[val] = key
-for key, values in NS_INCLUDE_FILES_DICT.items():
-    for val in values:
-        REVERSED_INCLUDE_FILES_DICT["ns::"+val] = key
 
 @dataclass(repr=False)
 class CppTypes(LanguageSpecificType):
@@ -112,7 +96,7 @@ class CppClass(LanguageSpecificClass):
 
 
 class CppGenerator(LanguageSpecificGenerator):
-    def translate(self, unit_translation: UnitTranslation) -> None:
+    def translate(self, unit_translation: UnitTranslation) -> str:
         env = Environment(loader=PackageLoader("outputs"))
         template = env.get_template('cpp_template.j2')
 
@@ -130,7 +114,6 @@ class CppGenerator(LanguageSpecificGenerator):
         sep1 = "-"*80+"\n"
         sep2 = "\n"+"*"*80+"\n"
 
-        for cls in self.cls_list:
-            print(sep1)
-            print(template.render(cls=cls, include_guard=include_guard,
-                  includes_set=includes_set), end=sep2)
+        print(sep1)
+        print(template.render(cls_list=self.cls_list, include_guard=include_guard,
+                includes_set=includes_set), end=sep2)

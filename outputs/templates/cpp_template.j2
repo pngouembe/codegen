@@ -8,6 +8,7 @@
 #include {{include}}
 {% endfor %}
 
+{% for cls in cls_list -%}
 {%- if cls.namespaces %}
 {%- for ns in cls.namespaces %}
 namespace {{ns}} {
@@ -40,11 +41,10 @@ protected:
     {{f}}
 {%- endfor %}
 }
-
 {% if cls.namespaces -%}
-{%- for ns in cls.namespaces|reverse %}
+{% for ns in cls.namespaces|reverse %}
 } //{{ns}}
 {%- endfor %}
 {%- endif %}
-
+{%- endfor %}
 #endif //{{include_guard|upper}}

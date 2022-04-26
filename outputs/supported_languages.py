@@ -1,4 +1,4 @@
-from enum import Enum, auto
+from enum import Enum
 
 from outputs.languages import cpp
 

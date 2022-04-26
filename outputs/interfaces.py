@@ -1,5 +1,4 @@
 from dataclasses import dataclass
-from enum import Enum
 
 from internal.arguments import InternalArgument
 from internal.attributes import InternalAttribute
@@ -10,7 +9,7 @@ from internal.types import InternalType
 
 
 class LanguageSpecificGenerator:
-    def translate(self, unit_translation: UnitTranslation) -> None:
+    def translate(self, unit_translation: UnitTranslation) -> str:
         pass
 
 

@@ -9,7 +9,7 @@ from internal.arguments import InternalArgument
 from internal.attributes import InternalAttribute
 from internal.classes import InternalClass
 from internal.functions import InternalFunction
-from internal.translation import UnitTranslation
+from internal.translation import GeneratedOutput, UnitTranslation
 from internal.types import InternalType
 from jinja2 import Environment, PackageLoader
 from outputs.interfaces import (LanguageSpecificArgument,
@@ -96,7 +96,7 @@ class CppClass(LanguageSpecificClass):
 
 
 class CppGenerator(LanguageSpecificGenerator):
-    def translate(self, unit_translation: UnitTranslation) -> str:
+    def translate(self, unit_translation: UnitTranslation) -> GeneratedOutput:
         env = Environment(loader=PackageLoader("outputs"))
         template = env.get_template('cpp_template.j2')
 
@@ -111,9 +111,7 @@ class CppGenerator(LanguageSpecificGenerator):
         includes_set = INCLUDE_FILES_SET.copy()
         INCLUDE_FILES_SET.clear()
 
-        sep1 = "-"*80+"\n"
-        sep2 = "\n"+"*"*80+"\n"
-
-        print(sep1)
-        print(template.render(cls_list=self.cls_list, include_guard=include_guard,
-                includes_set=includes_set), end=sep2)
+        ret_str = template.render(cls_list=self.cls_list, include_guard=include_guard,
+                includes_set=includes_set)
+        file_name = unit_translation.name + ".hpp"
+        return GeneratedOutput(name=file_name, content=ret_str)

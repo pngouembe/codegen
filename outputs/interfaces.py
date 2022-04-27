@@ -4,12 +4,12 @@ from internal.arguments import InternalArgument
 from internal.attributes import InternalAttribute
 from internal.classes import InternalClass
 from internal.functions import InternalFunction
-from internal.translation import UnitTranslation
+from internal.translation import GeneratedOutput, UnitTranslation
 from internal.types import InternalType
 
 
 class LanguageSpecificGenerator:
-    def translate(self, unit_translation: UnitTranslation) -> str:
+    def translate(self, unit_translation: UnitTranslation) -> GeneratedOutput:
         pass
 
 

@@ -1,4 +1,4 @@
-from enum import Enum, auto
+from enum import Enum
 
 from inputs.languages import xmi
 

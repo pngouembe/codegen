@@ -2,7 +2,7 @@
 
 import argparse
 
-from os import path
+from os import path, walk
 
 from inputs.ifactory import ParserFactory
 from inputs.interfaces import LanguageSpecificParser
@@ -23,7 +23,9 @@ def get_argparser() -> argparse.ArgumentParser:
                         choices=[o.name for o in OutputLanguages],
                         dest="output_language")
     parser.add_argument("-p", "--path",
-                        help="Path to the input file.",
+                        help="""Path to the input.
+                                The input can be a the path to a file or a directory.
+                                If a directory is given, all the files in it are translated.""",
                         required=True)
     parser.add_argument("-d", "--dest",
                         help="Path to the output directory.")
@@ -33,18 +35,26 @@ if "__main__" == __name__:
 
     args = get_argparser().parse_args()
 
-    parser: LanguageSpecificParser = ParserFactory.create_parser(
-        InputLanguages[args.input_language])
-    unit: UnitTranslation = parser.translate(args.path)
-
-    generator: LanguageSpecificGenerator = GeneratorFactory.create_generator(
-        OutputLanguages[args.output_language])
-
-    translation: GeneratedOutput = generator.translate(unit)
-    if args.dest:
-        translation.path = args.dest
+    paths = list()
+    if path.isdir(args.path):
+        for (dirpath, dirnames, filenames) in walk(args.path):
+            paths.extend([path.join(dirpath, f) for f in filenames])
     else:
-        translation.path = path.dirname(args.path)
+        paths.append(args.path)
 
-    with open(translation.get_path(), "w") as f:
-        f.write(translation.content)
+    for path in paths:
+        parser: LanguageSpecificParser = ParserFactory.create_parser(
+            InputLanguages[args.input_language])
+        unit: UnitTranslation = parser.translate(path)
+
+        generator: LanguageSpecificGenerator = GeneratorFactory.create_generator(
+            OutputLanguages[args.output_language])
+
+        translation: GeneratedOutput = generator.translate(unit)
+        if args.dest:
+            translation.path = args.dest
+        else:
+            translation.path = path.dirname(path)
+
+        with open(translation.get_path(), "w") as f:
+            f.write(translation.content)

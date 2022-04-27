@@ -1,6 +1,20 @@
 #! python3
 
 import argparse
+import logging
+
+try:
+    from rich.logging import RichHandler
+    FORMAT = "%(message)s"
+    logging.basicConfig(
+    level="NOTSET", format=FORMAT, datefmt="[%X]", handlers=[RichHandler()]
+    )
+
+except ImportError:
+    FORMAT = "%(name)s - %(levelname)s - %(message)s"
+    logging.basicConfig(level="NOTSET", format=FORMAT, datefmt="[%X]")
+
+log = logging.getLogger("codgen")
 
 from os import path, walk
 
@@ -37,12 +51,17 @@ if "__main__" == __name__:
 
     paths = list()
     if path.isdir(args.path):
+        log.info(f"Getting input files from {args.path}")
         for (dirpath, dirnames, filenames) in walk(args.path):
             paths.extend([path.join(dirpath, f) for f in filenames])
     else:
+        log.info(f"Using {args.path} as input file")
         paths.append(args.path)
 
-    for path in paths:
+    file_count = len(paths)
+    paths.sort()
+    for i, path in enumerate(paths):
+        log.info(f"#{i+1}/{file_count}: Translating {path}")
         parser: LanguageSpecificParser = ParserFactory.create_parser(
             InputLanguages[args.input_language])
         unit: UnitTranslation = parser.translate(path)

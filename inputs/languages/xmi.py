@@ -2,11 +2,13 @@
 import xml.etree.ElementTree as ET
 from dataclasses import dataclass
 from os import path
+from mylogger import log
 
 from inputs.interfaces import LanguageSpecificParser
 from internal.arguments import InternalArgument
 from internal.classes import InternalClass
 from internal.functions import FunctionModifiers, InternalFunction
+from internal.namespace import InternalNamespace
 from internal.translation import UnitTranslation
 from internal.types import InternalType
 from internal.visibility import Visibility
@@ -77,10 +79,11 @@ class CppXmiParser(LanguageSpecificParser):
                     modifiers=f_modifier))
 
             if cls.get("namespace") != model_ns:
-                namespaces = cls.get("namespace").split(CPP_NAMESPACE_SEP)
+                namespace = InternalNamespace(name=cls.get("namespace").split(CPP_NAMESPACE_SEP))
+                namespace.classes.append(InternalClass(name=c_name, functions=functions, attributes=[]))
+                unit.add_namespace(namespace)
             else:
-                namespaces = None
+                unit.classes.append(InternalClass(
+                    name=c_name, functions=functions, attributes=[]))
 
-            unit.classes.append(InternalClass(
-                name=c_name, functions=functions, attributes=[], namespaces=namespaces))
         return unit

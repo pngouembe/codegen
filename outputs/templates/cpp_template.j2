@@ -8,13 +8,8 @@
 #include {{include}}
 {% endfor %}
 
+{%- if cls_list -%}
 {% for cls in cls_list -%}
-{%- if cls.namespaces %}
-{%- for ns in cls.namespaces %}
-namespace {{ns}} {
-{%- endfor %}
-{%- endif %}
-
 class {{cls.name}}{
 
 {#- Adding class public functions -#}
@@ -41,10 +36,45 @@ protected:
     {{f}}
 {%- endfor %}
 }
-{% if cls.namespaces -%}
-{% for ns in cls.namespaces|reverse %}
-} //{{ns}}
 {%- endfor %}
+{%- endif %} {# classes #}
+
+{%- for ns in ns_list -%}
+{%- for name in ns.name %}
+namespace {{name}} {
+{%- endfor %}
+
+{% for cls in ns.classes -%}
+class {{cls.name}} {
+{#- Adding class public functions -#}
+{%- if cls.public_functions %}
+public:
 {%- endif %}
+{%- for f in cls.public_functions %}
+    {{f}}
 {%- endfor %}
+
+{#- Adding class private functions -#}
+{%- if cls.private_functions %}
+private:
+{%- endif %}
+{%- for f in cls.private_functions %}
+    {{f}}
+{%- endfor %}
+
+{#- Adding class protected functions -#}
+{%- if cls.protected_functions %}
+protected:
+{%- endif %}
+{%- for f in cls.protected_functions %}
+    {{f}}
+{%- endfor %}
+}
+{% endfor %}
+
+{%- for name in ns.name|reverse %}
+} //{{name}}
+{%- endfor %}
+{%- endfor %} {# namespace loop #}
+
 #endif //{{include_guard|upper}}

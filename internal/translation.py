@@ -1,9 +1,10 @@
 from dataclasses import dataclass, field
 from os.path import join
-from typing import List
+from typing import Dict, List
 
 from internal.classes import InternalClass
 from internal.functions import InternalFunction
+from internal.namespace import InternalNamespace
 
 
 @dataclass
@@ -11,6 +12,14 @@ class UnitTranslation:
     name: str
     classes: List[InternalClass] = field(default_factory=list)
     functions: List[InternalFunction] = field(default_factory=list)
+    namespaces: Dict[str, InternalNamespace] = field(default_factory=dict)
+
+    def add_namespace(self, namespace: InternalNamespace):
+        if namespace.internal_name in self.namespaces.keys():
+            self.namespaces[namespace.internal_name].update(namespace)
+        else:
+            self.namespaces[namespace.internal_name] = namespace
+
 
 @dataclass
 class GeneratedOutput:

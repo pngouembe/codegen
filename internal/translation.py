@@ -20,6 +20,12 @@ class UnitTranslation:
         else:
             self.namespaces[namespace.internal_name] = namespace
 
+    def add_class(self, cls: InternalClass):
+        self.classes.append(cls)
+
+    def add_function(self, function: InternalFunction):
+        self.functions.append(function)
+
 
 @dataclass
 class GeneratedOutput:

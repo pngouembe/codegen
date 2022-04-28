@@ -2,15 +2,17 @@
 
 ' set namespaceSeparator ::
 
-namespace test::coucou{
+namespace test.coucou{
 
-' Interface TestClass1{
-'     + {abstract} void public_function(int arg)
-'     - {abstract} ns::int private_function(char arg1, int arg2)
-' }
+Interface TestClass1{
+    + {abstract} void public_function(int arg)
+    - {abstract} ns::int private_function(char arg1, int arg2)
+}
 
 interface TestClass2{
     # {abstract} ns1::ns2::char protected_function(ns::int arg1 = 0, char arg2 = NULL)
+    ~ {method} package_private_function
+    {method} wallah
 }
 }
 @enduml

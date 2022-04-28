@@ -20,3 +20,12 @@ class InternalClass:
             f for f in self.functions if f.visibility == Visibility.PRIVATE]
         self.protected_functions = [
             f for f in self.functions if f.visibility == Visibility.PROTECTED]
+
+    def add_function(self, function: InternalFunction):
+        self.functions.append(function)
+
+    def add_attribute(self, attribute: InternalAttribute):
+        self.attributes.append(attribute)
+
+    def add_attribute(self, parent_classes: str):
+        self.parent_classes.append(parent_classes)

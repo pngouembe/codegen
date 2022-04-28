@@ -12,6 +12,7 @@ class FunctionModifiers(Enum):
     VIRTUAL = auto()
     ABSTRACT = auto()
 
+
 @dataclass
 class InternalFunction:
     name: str
@@ -19,7 +20,6 @@ class InternalFunction:
     return_type: InternalType = None
     visibility: Visibility = Visibility.PUBLIC
     modifiers: Set[FunctionModifiers] = field(default_factory=set)
-
 
     def __repr__(self) -> str:
         rep_str = ""

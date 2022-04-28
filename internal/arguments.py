@@ -18,3 +18,25 @@ class InternalArgument:
             rep_str = f"{rep_str} = {self.default_value}"
 
         return rep_str
+
+    @classmethod
+    def from_string(cls, string: str):
+        a_default_value = None
+        try:
+            string, a_default_value = string.rsplit("=")
+            a_default_value = a_default_value.strip()
+        except ValueError:
+            pass
+        finally:
+            string = string.strip()
+
+        try:
+            a_type, a_name = string.rsplit(maxsplit=1)
+        except ValueError:
+            a_name = string
+            a_type = None
+
+        if a_type:
+            a_type = InternalType.from_string(a_type)
+
+        return cls(name=a_name, type=a_type, default_value=a_default_value)

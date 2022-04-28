@@ -70,11 +70,10 @@ protected:
     {{f}}
 {%- endfor %}
 }
-{% endfor %}
 
-{%- for name in ns.name|reverse %}
+{% endfor -%}
+{%- for name in ns.name|reverse -%}
 } //{{name}}
-{%- endfor %}
-{%- endfor %} {# namespace loop #}
-
+{% endfor -%}
+{%- endfor -%} {# namespace loop #}
 #endif //{{include_guard|upper}}

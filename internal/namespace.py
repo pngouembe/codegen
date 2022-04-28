@@ -5,6 +5,7 @@ from internal.classes import InternalClass
 from internal.functions import InternalFunction
 from internal.variable import InternalVariable
 
+
 @dataclass
 class InternalNamespace:
     name: List[str]
@@ -19,3 +20,6 @@ class InternalNamespace:
         self.functions += (other.functions)
         self.variables += (other.variables)
         self.classes += (other.classes)
+
+    def add_class(self, cls: InternalClass):
+        self.classes.append(cls)

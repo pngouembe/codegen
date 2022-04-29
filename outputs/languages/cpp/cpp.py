@@ -1,9 +1,12 @@
 """CPP class objects"""
 
+from enum import Enum
+from typing import List
+from xml.etree.ElementInclude import include
 import yaml
 
 from mylogger import log
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from os import path
 
 from internal.arguments import InternalArgument
@@ -24,24 +27,58 @@ from outputs.interfaces import (LanguageSpecificArgument,
 
 CPP_NAMESPACE_SEP = "::"
 INCLUDE_FILES_SET = set()
+INCLUDE_FILES_DICT = dict()
 
 # Initializing the types to include file dictionnary
 with open(path.join(path.dirname(__file__),"./cpp_types.yml")) as f:
     INCLUDE_FILES_DICT = yaml.load(f)
 
-REVERSED_INCLUDE_FILES_DICT = {}
-for key, values in INCLUDE_FILES_DICT.items():
-    for val in values:
-        REVERSED_INCLUDE_FILES_DICT[val] = key
+INCLUDE_FILE_MATCHER_DICT = {}
+def update_include_file_matcher_dict():
+    for key, values in INCLUDE_FILES_DICT.items():
+        for val in values:
+            INCLUDE_FILE_MATCHER_DICT[val] = key
+
+class CppTypeModifier(Enum):
+    CONST = "const "
+    CONST_POINTER = "* const "
+    POINTER = "*"
+    CONST_REFERENCE = "& const "
+    REFERENCE = "&"
+
 
 @dataclass(repr=False)
 class CppTypes(LanguageSpecificType):
     @classmethod
     def from_internal(cls, internal: InternalType):
-        try:
-            INCLUDE_FILES_SET.add(REVERSED_INCLUDE_FILES_DICT[repr(internal)])
-        except KeyError:
-            log.warn(f"Warning {internal!r} is an unknown type")
+        internal.namespace_sep = CPP_NAMESPACE_SEP
+        tmp_str = repr(internal)
+        tmp_str = tmp_str.replace("&", " &").replace("*", " *")
+        for m in [mod.value for mod in CppTypeModifier]:
+            if m in tmp_str:
+                tmp_str = tmp_str.replace(m, "")
+        str_list: List[str] = list()
+        for elem in tmp_str.split("<"):
+            str_list.append(elem.replace(">", ""))
+
+        for s in str_list:
+            s = s.strip()
+            log.debug(f"Found type: {s}")
+            try:
+                include_file = INCLUDE_FILE_MATCHER_DICT[s]
+                if include_file != "builtin":
+                    INCLUDE_FILES_SET.add(INCLUDE_FILE_MATCHER_DICT[s])
+            except KeyError:
+                if CPP_NAMESPACE_SEP in s:
+                    s = s.rsplit(CPP_NAMESPACE_SEP, maxsplit=1)[-1]
+                    try:
+                        include_file = INCLUDE_FILE_MATCHER_DICT[s]
+                        if include_file != "builtin":
+                            INCLUDE_FILES_SET.add(INCLUDE_FILE_MATCHER_DICT[s])
+                    except KeyError:
+                        log.warn(f"Warning {s} is an unknown type")
+                else:
+                    log.warn(f"Warning {s} is an unknown type")
         return cls(name=internal.name, namespace=internal.namespace, namespace_sep=CPP_NAMESPACE_SEP)
 
 
@@ -129,6 +166,11 @@ class CppGenerator(LanguageSpecificGenerator):
     def translate(self, unit_translation: UnitTranslation) -> GeneratedOutput:
         env = Environment(loader=PackageLoader("outputs"))
         template_name = 'cpp_template.j2'
+        include_cfg_file = 'cpp_custom_includes.yml'
+        with open(path.join(include_cfg_file)) as f:
+            INCLUDE_FILES_DICT.update(yaml.load(f))
+        update_include_file_matcher_dict()
+
         template = env.get_template(template_name)
 
         log.debug("Translating to CPP:")
@@ -145,9 +187,10 @@ class CppGenerator(LanguageSpecificGenerator):
         # TODO: Create include guard from the file path or global namespace
         include_guard = str.upper(unit_translation.name + "_hpp")
 
-        includes_set = INCLUDE_FILES_SET.copy()
+        includes_set = sorted(INCLUDE_FILES_SET.copy())
+        includes_set
         INCLUDE_FILES_SET.clear()
-
+        log.debug(f"include set : {includes_set}")
         ret_str = template.render(ns_list=self.ns_list, cls_list=self.cls_list, include_guard=include_guard,
                 includes_set=includes_set)
         file_name = unit_translation.name + ".hpp"

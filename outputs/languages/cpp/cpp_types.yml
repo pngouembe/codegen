@@ -1,13 +1,92 @@
 ---
 
-'"Dummy_include.h"':
-  - "int"
-  - "char"
-
-<my_test_header.h>:
+builtin:
+  - bool
+  - int
+  - char
   - void
 
-'"ns_header.hpp"':
-  - ns::int
-  - ns1::ns2::char
+<cstdint>:
+  - uint8_t
+  - uint16_t
+  - uint32_t
+  - uint64_t
+  - int8_t
+  - int16_t
+  - int32_t
+  - int64_t
+  - float32_t
+  - float64_t
+
+
+<future>:
+  - promise
+  - packaged_task
+  - future
+  - shared_future
+  - launch
+  - future_status
+  - future_error
+  - future_errc
+  - std::uses_allocator<std::promise>
+  - std::uses_allocator<std::packaged_task>
+
+<memory>:
+  - pointer_traits
+  - pointer_safety
+  - allocator
+  - allocator_traits
+  - allocation_result
+  - allocator_arg_t
+  - uses_allocator
+  - raw_storage_iterator
+  - unique_ptr
+  - shared_ptr
+  - weak_ptr
+  - auto_ptr
+  - std::atomic<std::shared_ptr>
+  - std::atomic<std::weak_ptr>
+  - owner_less
+  - enable_shared_from_this
+  - bad_weak_ptr
+  - default_delete
+  - std::hash<std::unique_ptr>
+  - std::hash<std::shared_ptr>
+  - out_ptr_t
+  - inout_ptr_t
+  - hash
+  - atomic
+  - Constants
+  - allocator_arg
+
+<string>:
+  - char_traits
+  - std::char_traits<char>
+  - std::char_traits<wchar_t>
+  - std::char_traits<char8_t>
+  - std::char_traits<char16_t>
+  - std::char_traits<char32_t>
+  - basic_string
+  - std::string
+  - std::u8string
+  - std::u16string
+  - std::u32string
+  - std::wstring
+  - std::pmr::basic_string
+  - std::pmr::string
+  - std::pmr::u8string
+  - std::pmr::u16string
+  - std::pmr::u32string
+  - std::pmr::wstring
+  - std::hash<std::string>
+  - std::hash<std::u8string>
+  - std::hash<std::u16string>
+  - std::hash<std::u32string>
+  - std::hash<std::wstring>
+  - std::hash<std::pmr::string>
+  - std::hash<std::pmr::u8string>
+  - std::hash<std::pmr::u16string>
+  - std::hash<std::pmr::u32string>
+  - std::hash<std::pmr::wstring>
+
 ...

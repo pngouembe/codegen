@@ -42,7 +42,6 @@ def function_from_str(str: str) -> InternalFunction:
         except ValueError:
             args = tmp
 
-    modifiers = set()
     try:
         pre_name, f_name = pre_args.rsplit(maxsplit=1)
     except ValueError:
@@ -50,14 +49,15 @@ def function_from_str(str: str) -> InternalFunction:
         pre_name = ""
 
     f_type = None
-    for elem in pre_name.split():
-        try:
-            visibility = PLANTUML_VISIBILITY_MATCHER[elem]
-        except KeyError:
-            visibility = Visibility.PUBLIC
-        else:
-            continue
+    modifiers = set()
+    try:
+        visibility = PLANTUML_VISIBILITY_MATCHER[pre_name[0]]
+    except KeyError:
+        visibility = Visibility.PUBLIC
+    else:
+        pre_name = pre_name[1::]
 
+    for elem in pre_name.split():
         try:
             modifiers.add(PLANTUML_FUNCTION_MODIFIER_MATCHER[elem])
         except KeyError:
@@ -102,6 +102,10 @@ class PlantumlParser(LanguageSpecificParser):
                 # this is a line to ignore
                 continue
 
+            if line.strip().upper().startswith("NOTE"):
+                # this is a line to ignore
+                continue
+
             # Retrieving the name after namespace and before the {
             m = re.search(r"namespace\s+([^\{\s]+)", line, re.IGNORECASE)
             if m:
@@ -115,7 +119,17 @@ class PlantumlParser(LanguageSpecificParser):
             if m:
                 log.debug(f"Found a interface: {m.group(1)}")
                 cls = InternalClass(name=m.group(1))
-                context.append(cls)
+                if "{" in line:
+                    context.append(cls)
+                line = line.split(m.group(0), maxsplit=1)[-1]
+
+            # Retrieving the name after class and before the {
+            m = re.search(r"class\s+([^\{\s]+)", line, re.IGNORECASE)
+            if m:
+                log.debug(f"Found a class: {m.group(1)}")
+                cls = InternalClass(name=m.group(1))
+                if "{" in line:
+                    context.append(cls)
                 line = line.split(m.group(0), maxsplit=1)[-1]
 
             # Check if method identifiers are in the line
@@ -123,7 +137,10 @@ class PlantumlParser(LanguageSpecificParser):
             if m:
                 function = function_from_str(line)
                 log.debug(f"function repr: {function}")
-                context[-1].add_function(function)
+                try:
+                    context[-1].add_function(function)
+                except IndexError:
+                    log.warn(f"Index problem with the current context: {context}")
                 line = line.split(m.group(0), maxsplit=1)[-1]
 
             # Check if the line contains something similar to a function signature with parenthesis
@@ -131,16 +148,23 @@ class PlantumlParser(LanguageSpecificParser):
             if m:
                 function = function_from_str(line)
                 log.debug(f"function repr: {function}")
-                context[-1].add_function(function)
+                try:
+                    context[-1].add_function(function)
+                except IndexError:
+                    log.warn(f"Index problem with the current context: {context}")
+
                 line = line.split(m.group(0), maxsplit=1)[-1]
 
             m = re.search(r"\}", line)
             if m:
-                if isinstance(context[-1], InternalClass):
-                    context[-2].add_class(context[-1])
-                elif isinstance(context[-1], InternalNamespace):
-                    context[-2].add_namespace(context[-1])
-                context.pop()
-                line = line.split(m.group(0), maxsplit=1)[-1]
+                try:
+                    if isinstance(context[-1], InternalClass):
+                        context[-2].add_class(context[-1])
+                    elif isinstance(context[-1], InternalNamespace):
+                        context[-2].add_namespace(context[-1])
+                    context.pop()
+                    line = line.split(m.group(0), maxsplit=1)[-1]
+                except IndexError:
+                    log.warn(f"Index problem with the current context: {context}")
 
         return unit

@@ -35,7 +35,7 @@ protected:
 {%- for f in cls.protected_functions %}
     {{f}}
 {%- endfor %}
-}
+};
 {% endfor -%}
 {%- endif -%} {# classes #}
 
@@ -46,6 +46,31 @@ namespace {{name}} {
 
 {% for cls in ns.classes -%}
 class {{cls.name}} {
+
+{#- Adding class public attributes -#}
+{%- if cls.public_attributes %}
+public:
+{%- endif %}
+{%- for attr in cls.public_attributes %}
+    {{attr}}
+{%- endfor %}
+
+{#- Adding class private attributes -#}
+{%- if cls.private_attributes %}
+private:
+{%- endif %}
+{%- for attr in cls.private_attributes %}
+    {{attr}}
+{%- endfor %}
+
+{#- Adding class protected attributes -#}
+{%- if cls.protected_attributes %}
+protected:
+{%- endif %}
+{%- for attr in cls.protected_attributes %}
+    {{attr}}
+{%- endfor %}
+
 {#- Adding class public functions -#}
 {%- if cls.public_functions %}
 public:
@@ -69,7 +94,7 @@ protected:
 {%- for f in cls.protected_functions %}
     {{f}}
 {%- endfor %}
-}
+};
 
 {% endfor -%}
 {%- for name in ns.name|reverse -%}

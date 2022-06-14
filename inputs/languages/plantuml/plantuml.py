@@ -5,7 +5,9 @@ from os import path
 import yaml
 from inputs.interfaces import LanguageSpecificParser
 from internal.arguments import InternalArgument
+from internal.attributes import InternalAttribute
 from internal.classes import InternalClass
+from internal.enums import InternalEnum
 from internal.functions import FunctionModifiers, InternalFunction
 from internal.namespace import InternalNamespace
 from internal.translation import UnitTranslation
@@ -14,7 +16,7 @@ from internal.visibility import Visibility
 from mylogger import log
 
 with open(path.join(path.dirname(__file__), "./keywords.yml")) as f:
-    PLANTUML_KEYWORDS = yaml.load(f)
+    PLANTUML_KEYWORDS = yaml.safe_load(f)
 
 PLANTUML_VISIBILITY_MATCHER = {
     "+": Visibility.PUBLIC,
@@ -98,6 +100,10 @@ class PlantumlParser(LanguageSpecificParser):
                 # this is a commented line, ignore it
                 continue
 
+            if line.strip().startswith("/'"):
+                # this is a commented line, ignore it
+                continue
+
             if line.strip().startswith("@"):
                 # this is a line to ignore
                 continue
@@ -132,6 +138,15 @@ class PlantumlParser(LanguageSpecificParser):
                     context.append(cls)
                 line = line.split(m.group(0), maxsplit=1)[-1]
 
+            # Retrieving the name after enum and before the {
+            m = re.search(r"enum\s+([^\{\s]+)", line, re.IGNORECASE)
+            if m:
+                log.debug(f"Found an enum: {m.group(1)}")
+                cls = InternalEnum(name=m.group(1))
+                if "{" in line:
+                    context.append(cls)
+                line = line.split(m.group(0), maxsplit=1)[-1]
+
             # Check if method identifiers are in the line
             m = re.search(r"(\{method\}|\{abstract\}).*", line)
             if m:
@@ -155,13 +170,35 @@ class PlantumlParser(LanguageSpecificParser):
 
                 line = line.split(m.group(0), maxsplit=1)[-1]
 
+            # Check if the line contains attributes
+            m = re.search(r"([^\+\-\#\~\s\{\}\(]+)", line)
+            if m:
+                str_arg = m.group(1)
+
+                # Check if the attributes has a type
+                t = re.search(r"[^\:]\:([^\:]+)", line)
+                if t:
+                    str_arg = " ".join([t.group(1), m.group(1)])
+                attribute = InternalAttribute.from_string(str_arg)
+                log.debug(f"attribute repr: {attribute}")
+                try:
+                    context[-1].add_attribute(attribute)
+                except IndexError:
+                    log.warn(
+                        f"Index problem with the current context: {context}")
+
+                line = line.split(m.group(0), maxsplit=1)[-1]
+
             m = re.search(r"\}", line)
             if m:
                 try:
                     if isinstance(context[-1], InternalClass):
                         context[-2].add_class(context[-1])
+                    elif isinstance(context[-1], InternalEnum):
+                        context[-2].add_enum(context[-1])
                     elif isinstance(context[-1], InternalNamespace):
                         context[-2].add_namespace(context[-1])
+                    log.debug(f'end of {context[-1].name}')
                     context.pop()
                     line = line.split(m.group(0), maxsplit=1)[-1]
                 except IndexError:

@@ -3,6 +3,7 @@ from dataclasses import dataclass
 from internal.arguments import InternalArgument
 from internal.attributes import InternalAttribute
 from internal.classes import InternalClass
+from internal.enums import InternalEnum
 from internal.functions import InternalFunction
 from internal.namespace import InternalNamespace
 from internal.translation import GeneratedOutput, UnitTranslation
@@ -19,6 +20,13 @@ class LanguageSpecificGenerator:
 class LanguageSpecificNamespace(InternalNamespace):
     @classmethod
     def from_internal(cls, internal: InternalNamespace):
+        pass
+
+
+@dataclass(repr=False)
+class LanguageSpecificEnum(InternalEnum):
+    @classmethod
+    def from_internal(cls, internal: InternalEnum):
         pass
 
 

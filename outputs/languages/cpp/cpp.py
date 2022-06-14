@@ -1,43 +1,50 @@
 """CPP class objects"""
 
+from dataclasses import dataclass
 from enum import Enum
-from typing import List
-from xml.etree.ElementInclude import include
-import yaml
-
-from mylogger import log
-from dataclasses import dataclass, field
 from os import path
+from typing import List
 
+import yaml
 from internal.arguments import InternalArgument
 from internal.attributes import InternalAttribute
 from internal.classes import InternalClass
+from internal.enums import InternalEnum
 from internal.functions import InternalFunction
 from internal.namespace import InternalNamespace
 from internal.translation import GeneratedOutput, UnitTranslation
 from internal.types import InternalType
-from jinja2 import Environment, PackageLoader
 from internal.variable import InternalVariable
+from jinja2 import Environment, PackageLoader
+from mylogger import log
 from outputs.interfaces import (LanguageSpecificArgument,
                                 LanguageSpecificAttribute,
-                                LanguageSpecificClass,
+                                LanguageSpecificClass, LanguageSpecificEnum,
                                 LanguageSpecificFunction,
-                                LanguageSpecificGenerator, LanguageSpecificNamespace,
+                                LanguageSpecificGenerator,
+                                LanguageSpecificNamespace,
                                 LanguageSpecificType, LanguageSpecificVariable)
 
 CPP_NAMESPACE_SEP = "::"
 INCLUDE_FILES_SET = set()
 INCLUDE_FILES_DICT = dict()
+TEMPLATE_NAME = 'cpp_template.j2'
+STD_INCLUDE_FILE = './cpp_types.yml'
+INCLUDE_CFG_FILE = 'cpp_custom_includes.yml'
+
 
 # Initializing the types to include file dictionnary
-with open(path.join(path.dirname(__file__),"./cpp_types.yml")) as f:
-    INCLUDE_FILES_DICT = yaml.load(f)
+with open(path.join(path.dirname(__file__), STD_INCLUDE_FILE)) as f:
+    INCLUDE_FILES_DICT = yaml.safe_load(f)
 
 INCLUDE_FILE_MATCHER_DICT = {}
+
+
 def update_include_file_matcher_dict():
     for key, values in INCLUDE_FILES_DICT.items():
         for val in values:
             INCLUDE_FILE_MATCHER_DICT[val] = key
+
 
 class CppTypeModifier(Enum):
     CONST = "const "
@@ -104,6 +111,15 @@ class CppAttribute(LanguageSpecificAttribute):
                    default_value=internal.default_value,
                    visibility=internal.visibility)
 
+    def __repr__(self) -> str:
+        repr_str = "" if self.type is None else repr(self.type)
+        repr_str = " ".join([repr_str, self.name])
+        if self.default_value:
+            repr_str = " ".join([repr_str, self.default_value], " = ")
+
+        repr_str = repr_str + ";"
+        return repr_str
+
 
 @dataclass(repr=False)
 class CppVariable(LanguageSpecificVariable):
@@ -146,6 +162,17 @@ class CppClass(LanguageSpecificClass):
 
 
 @dataclass(repr=False)
+class CppEnum(LanguageSpecificEnum):
+
+    @classmethod
+    def from_internal(cls, internal: InternalEnum):
+        a_list = [CppAttribute.from_internal(a) for a in internal.attributes]
+        return cls(name=internal.name,
+                   attributes=a_list,
+                   parent_classes=internal.parent_classes)
+
+
+@dataclass(repr=False)
 class CppNamespaces(LanguageSpecificNamespace):
 
     @classmethod
@@ -155,34 +182,41 @@ class CppNamespaces(LanguageSpecificNamespace):
         f_list = [CppFunction.from_internal(f) for f in internal.functions]
         v_list = [CppVariable.from_internal(v) for v in internal.variables]
         c_list = [CppClass.from_internal(c) for c in internal.classes]
+        e_list = [CppEnum.from_internal(e) for e in internal.enums]
         return cls(name=internal.name,
                    functions=f_list,
                    variables=v_list,
-                   classes=c_list)
-
+                   classes=c_list,
+                   enums=e_list)
 
 
 class CppGenerator(LanguageSpecificGenerator):
     def translate(self, unit_translation: UnitTranslation) -> GeneratedOutput:
         env = Environment(loader=PackageLoader("outputs"))
-        template_name = 'cpp_template.j2'
-        include_cfg_file = 'cpp_custom_includes.yml'
-        with open(path.join(include_cfg_file)) as f:
-            INCLUDE_FILES_DICT.update(yaml.load(f))
+
+        try:
+            with open(path.join(INCLUDE_CFG_FILE)) as f:
+                INCLUDE_FILES_DICT.update(yaml.safe_load(f))
+        except FileNotFoundError:
+            log.warn(
+                f'No custom includes file provided, using the types found in "{STD_INCLUDE_FILE}"')
+
         update_include_file_matcher_dict()
 
-        template = env.get_template(template_name)
+        template = env.get_template(TEMPLATE_NAME)
 
         log.debug("Translating to CPP:")
-        log.debug(f"Template: {template_name}")
+        log.debug(f"Template: {TEMPLATE_NAME}")
         log.debug(f"Unit: {unit_translation}")
 
         self.cls_list = [CppClass.from_internal(c)
                          for c in unit_translation.classes]
+        self.enum_list = [CppEnum.from_internal(e)
+                          for e in unit_translation.enums]
         self.fct_list = [CppFunction.from_internal(f)
                          for f in unit_translation.functions]
         self.ns_list = [CppNamespaces.from_internal(ns)
-                         for ns in unit_translation.namespaces.values()]
+                        for ns in unit_translation.namespaces.values()]
 
         # TODO: Create include guard from the file path or global namespace
         include_guard = str.upper(unit_translation.name + "_hpp")
@@ -192,6 +226,6 @@ class CppGenerator(LanguageSpecificGenerator):
         INCLUDE_FILES_SET.clear()
         log.debug(f"include set : {includes_set}")
         ret_str = template.render(ns_list=self.ns_list, cls_list=self.cls_list, include_guard=include_guard,
-                includes_set=includes_set)
+                                  includes_set=includes_set)
         file_name = unit_translation.name + ".hpp"
         return GeneratedOutput(name=file_name, content=ret_str)

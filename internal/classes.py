@@ -21,11 +21,18 @@ class InternalClass:
         self.protected_functions = [
             f for f in self.functions if f.visibility == Visibility.PROTECTED]
 
+        self.public_attributes = [
+            attr for attr in self.attributes if attr.visibility == Visibility.PUBLIC]
+        self.private_attributes = [
+            attr for attr in self.attributes if attr.visibility == Visibility.PRIVATE]
+        self.protected_attributes = [
+            attr for attr in self.attributes if attr.visibility == Visibility.PROTECTED]
+
     def add_function(self, function: InternalFunction):
         self.functions.append(function)
 
     def add_attribute(self, attribute: InternalAttribute):
         self.attributes.append(attribute)
 
-    def add_attribute(self, parent_classes: str):
+    def add_parent_class(self, parent_classes: str):
         self.parent_classes.append(parent_classes)

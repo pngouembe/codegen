@@ -3,6 +3,7 @@ from os.path import join
 from typing import Dict, List
 
 from internal.classes import InternalClass
+from internal.enums import InternalEnum
 from internal.functions import InternalFunction
 from internal.namespace import InternalNamespace
 
@@ -13,6 +14,7 @@ class UnitTranslation:
     classes: List[InternalClass] = field(default_factory=list)
     functions: List[InternalFunction] = field(default_factory=list)
     namespaces: Dict[str, InternalNamespace] = field(default_factory=dict)
+    enums: List[InternalEnum] = field(default_factory=list)
 
     def add_namespace(self, namespace: InternalNamespace):
         if namespace.internal_name in self.namespaces.keys():
@@ -22,6 +24,9 @@ class UnitTranslation:
 
     def add_class(self, cls: InternalClass):
         self.classes.append(cls)
+
+    def add_enum(self, cls: InternalEnum):
+        self.enums.append(cls)
 
     def add_function(self, function: InternalFunction):
         self.functions.append(function)

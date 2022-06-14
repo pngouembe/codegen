@@ -21,6 +21,7 @@ class InternalFunction:
     visibility: Visibility = Visibility.PUBLIC
     modifiers: Set[FunctionModifiers] = field(default_factory=set)
 
+    #TODO: Put this CPP representation in CPP function class
     def __repr__(self) -> str:
         rep_str = ""
         if FunctionModifiers.VIRTUAL in self.modifiers or FunctionModifiers.ABSTRACT in self.modifiers:

@@ -29,3 +29,11 @@ The project is based around 3 major components:
 - A templated file generator
 
 The goal is to make this project extensible to be able to support a multitude of input and output langages.
+
+## Test
+
+For now you can use the following command for testing
+
+```bash
+python3 ./codegen.py -i PLANTUML -o CPP -p test_dir/test.plantuml -d test_dir
+```

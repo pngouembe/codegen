@@ -18,10 +18,9 @@ class CppAttribute(LanguageSpecificAttribute):
                    visibility=internal.visibility)
 
     def __repr__(self) -> str:
-        repr_str = "" if self.type is None else repr(self.type)
-        repr_str = " ".join([repr_str, self.name])
+        repr_str = "" if self.type is None else repr(self.type) + " "
+        repr_str = repr_str + self.name
         if self.default_value:
-            repr_str = " ".join([repr_str, self.default_value], " = ")
+            repr_str = repr_str + " = " + self.default_value
 
-        repr_str = repr_str + ";"
         return repr_str

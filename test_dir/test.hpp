@@ -8,6 +8,12 @@
 namespace Microsoft {
 namespace Console {
 
+enum HostSignals {
+    EndTask,
+    NotifyApp,
+    SetForeground
+};
+
 class HostSignalEndTaskData {
 public:
     uint32_t ctrlFlags;
@@ -31,5 +37,4 @@ public:
 
 } //Console
 } //Microsoft
-
 #endif //TEST_HPP

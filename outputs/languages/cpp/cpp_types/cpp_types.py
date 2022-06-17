@@ -1,14 +1,21 @@
 from dataclasses import dataclass
+from enum import Enum
 from typing import List
 
 from internal.types import InternalType
 from mylogger import log
 from outputs.interfaces import LanguageSpecificType
-from outputs.languages.cpp.cpp_config.cpp_constants import (CPP_NAMESPACE_SEP,
-                                                            CppTypeModifier)
+from outputs.languages.cpp.cpp_config.cpp_constants import CPP_NAMESPACE_SEP
 from outputs.languages.cpp.cpp_config.cpp_includes import (
     INCLUDE_FILE_MATCHER_DICT, INCLUDE_FILES_SET)
 
+
+class CppTypeModifier(Enum):
+    CONST = "const "
+    CONST_POINTER = "* const "
+    POINTER = "*"
+    CONST_REFERENCE = "& const "
+    REFERENCE = "&"
 
 @dataclass(repr=False)
 class CppTypes(LanguageSpecificType):
@@ -16,6 +23,12 @@ class CppTypes(LanguageSpecificType):
     def from_internal(cls, internal: InternalType):
         internal.namespace_sep = CPP_NAMESPACE_SEP
         tmp_str = repr(internal)
+        if internal.namespace:
+            tmp_str = internal.namespace_sep.join(
+                internal.namespace + [internal.name])
+        else:
+            tmp_str = internal.name
+
         tmp_str = tmp_str.replace("&", " &").replace("*", " *")
         for m in [mod.value for mod in CppTypeModifier]:
             if m in tmp_str:
@@ -43,3 +56,8 @@ class CppTypes(LanguageSpecificType):
                 else:
                     log.warn(f"Warning {s} is an unknown type")
         return cls(name=internal.name, namespace=internal.namespace, namespace_sep=CPP_NAMESPACE_SEP)
+
+    def __repr__(self) -> str:
+        if self.namespace:
+            return self.namespace_sep.join(self.namespace + [self.name])
+        return f"{self.name}"

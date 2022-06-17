@@ -54,7 +54,7 @@ class CppGenerator(LanguageSpecificGenerator):
         includes_set
         INCLUDE_FILES_SET.clear()
         log.debug(f"include set : {includes_set}")
-        ret_str = template.render(ns_list=self.ns_list, cls_list=self.cls_list, include_guard=include_guard,
-                                  includes_set=includes_set)
+        ret_str = template.render(ns_list=self.ns_list, cls_list=self.cls_list,
+                                  include_guard=include_guard, includes_set=includes_set, enum_list=self.enum_list)
         file_name = unit_translation.name + ".hpp"
         return GeneratedOutput(name=file_name, content=ret_str)

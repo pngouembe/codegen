@@ -10,11 +10,6 @@ class InternalType:
     namespace: List[str] = None
     namespace_sep: str = "."
 
-    def __repr__(self) -> str:
-        if self.namespace:
-            return self.namespace_sep.join(self.namespace + [self.name])
-        return f"{self.name}"
-
     @classmethod
     def from_string(cls, string: str, namespace_sep: str = None):
         if namespace_sep == None:

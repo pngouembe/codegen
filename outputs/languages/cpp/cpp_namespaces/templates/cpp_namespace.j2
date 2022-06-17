@@ -1,0 +1,31 @@
+{%- for name in ns.name %}
+namespace {{name}} {
+{%- endfor %}
+
+{%- if ns.variables %}
+    {%- for var in ns.variables %}
+
+{{var}}
+    {%- endfor -%}
+{%- endif %}
+{%- if ns.enums %}
+    {%- for enum in ns.enums %}
+
+{{enum}}
+    {%- endfor -%}
+{%- endif %}
+{%- if ns.classes %}
+    {%- for cls in ns.classes %}
+
+{{cls}}
+    {%- endfor -%}
+{%- endif %}
+{%- if ns.functions %}
+    {%- for fct in ns.functions %}
+
+{{fct}}
+    {%- endfor -%}
+{%- endif %}
+{% for name in ns.name|reverse %}
+} //{{name}}
+{%- endfor -%}

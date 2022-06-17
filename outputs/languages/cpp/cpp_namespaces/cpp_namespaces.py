@@ -1,6 +1,7 @@
 from dataclasses import dataclass
 
 from internal.namespace import InternalNamespace
+from jinja2 import Environment, PackageLoader
 from mylogger import log
 from outputs.interfaces import LanguageSpecificNamespace
 
@@ -9,6 +10,7 @@ from ..cpp_enums import CppEnum
 from ..cpp_functions import CppFunction
 from ..cpp_variables import CppVariable
 
+CPP_NAMESPACE_TEMPLATE = "cpp_namespace.j2"
 
 @dataclass(repr=False)
 class CppNamespaces(LanguageSpecificNamespace):
@@ -26,3 +28,8 @@ class CppNamespaces(LanguageSpecificNamespace):
                    variables=v_list,
                    classes=c_list,
                    enums=e_list)
+
+    def __repr__(self) -> str:
+        env = Environment(loader=PackageLoader(__name__))
+        template = env.get_template(CPP_NAMESPACE_TEMPLATE)
+        return template.render(ns=self)

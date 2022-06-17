@@ -8,97 +8,21 @@
 #include {{include}}
 {% endfor %}
 
-{%- if cls_list -%}
-{% for cls in cls_list -%}
-class {{cls.name}}{
-
-{#- Adding class public functions -#}
-{%- if cls.public_functions %}
-public:
-{%- endif %}
-{%- for f in cls.public_functions %}
-    {{f}}
-{%- endfor %}
-
-{#- Adding class private functions -#}
-{%- if cls.private_functions %}
-private:
-{%- endif %}
-{%- for f in cls.private_functions %}
-    {{f}}
-{%- endfor %}
-
-{#- Adding class protected functions -#}
-{%- if cls.protected_functions %}
-protected:
-{%- endif %}
-{%- for f in cls.protected_functions %}
-    {{f}}
-{%- endfor %}
-};
+{%- if enum_list %}
+{%- for enum in enum_list %}
+{{enum}}
 {% endfor -%}
 {%- endif -%} {# classes #}
 
+{%- if cls_list -%}
+{%- for cls in cls_list %}
+{{cls}}
+{% endfor -%}
+{%- endif -%} {# classes #}
+
+{%- if ns_list -%}
 {%- for ns in ns_list -%}
-{%- for name in ns.name %}
-namespace {{name}} {
-{%- endfor %}
-
-{% for cls in ns.classes -%}
-class {{cls.name}} {
-
-{#- Adding class public attributes -#}
-{%- if cls.public_attributes %}
-public:
-{%- endif %}
-{%- for attr in cls.public_attributes %}
-    {{attr}}
-{%- endfor %}
-
-{#- Adding class private attributes -#}
-{%- if cls.private_attributes %}
-private:
-{%- endif %}
-{%- for attr in cls.private_attributes %}
-    {{attr}}
-{%- endfor %}
-
-{#- Adding class protected attributes -#}
-{%- if cls.protected_attributes %}
-protected:
-{%- endif %}
-{%- for attr in cls.protected_attributes %}
-    {{attr}}
-{%- endfor %}
-
-{#- Adding class public functions -#}
-{%- if cls.public_functions %}
-public:
-{%- endif %}
-{%- for f in cls.public_functions %}
-    {{f}}
-{%- endfor %}
-
-{#- Adding class private functions -#}
-{%- if cls.private_functions %}
-private:
-{%- endif %}
-{%- for f in cls.private_functions %}
-    {{f}}
-{%- endfor %}
-
-{#- Adding class protected functions -#}
-{%- if cls.protected_functions %}
-protected:
-{%- endif %}
-{%- for f in cls.protected_functions %}
-    {{f}}
-{%- endfor %}
-};
-
-{% endfor -%}
-{%- for name in ns.name|reverse -%}
-} //{{name}}
-{% endfor -%}
+{{ns}}
 {%- endfor -%} {# namespace loop #}
+{%- endif -%} {# namespaces #}
 #endif //{{include_guard|upper}}

@@ -31,10 +31,10 @@ class InternalNamespace:
     def add_class(self, cls: InternalClass):
         self.classes.append(cls)
 
-    def add_functions(self, cls: InternalFunction):
+    def add_function(self, cls: InternalFunction):
         self.functions.append(cls)
 
-    def add_variables(self, cls: InternalVariable):
+    def add_variable(self, cls: InternalVariable):
         self.variables.append(cls)
 
     def add_enum(self, cls: InternalEnum):

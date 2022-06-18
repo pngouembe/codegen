@@ -1,0 +1,163 @@
+' Uml taken from https://github.com/masdikaid/rakamin-final-project/blob/cc463a45daf64bd9ebb26c2b8cb4d10aabd8bacd/documentation/class.plantuml for test purposes
+@startuml
+
+
+' package Transaction  {
+
+    class TransactionEntity {
+        ID : uint
+        CreatedAt : time
+        UpdatedAt : time
+        DeletedAt : time
+        Customer_id : uint
+        Customer : CustomerEntity
+        Agent_id : uint
+        Agent : AgentEntity
+        Address : string
+        Province : string
+        City : string
+        District : string
+        Latitude : decimal
+        Longitude : decimal
+        Services : string
+        Type : string
+        Amount : uint
+        Status : uint
+        Rating : uint
+    }
+
+    interface TransactionContractInterface {
+        TransactionContractInterface FromEntity(ent TransactionEntity)
+        TransactionEntity ToEntity()
+    }
+
+    class TransactionContract {
+        ID : uint `json:"id_transaksi"`
+        Status : int `json:"status"`
+        CreatedAt : time `json:"created_at"`
+        Services : string `json:"jenis_layanan"`
+        Type : string `json:"jenis_transaksi"`
+        Amount : uint `json:"nominal_transaksi_idr"`
+        Rating : uint `json:"rating"`
+        Agent : AgentContract `json:"agen"`
+        Customer : CustomerContract `json:"customer"`
+    }
+
+    interface TransactionRepositoryInterface {
+        []*TransactionEntity GetAll()
+        []*TransactionEntity GetAllByID(usertype string, id uint)
+        *TransactionEntity GetByID(id uint)
+        *TransactionEntity Create(ent *TransactionEntity)
+        *TransactionEntity Update(ent *TransactionEntity)
+        error Delete(ent *TransactionEntity)
+    }
+
+
+
+    class Transaction {
+        id : int
+        customerId : Customer
+        agentId : Agent
+        locationId : Location
+        type : varchar
+        amount : int
+        status : int
+        ratting : int
+    }
+
+    TransactionInterface <|-- Transaction
+
+' }
+
+' package User  {
+
+    interface UserInterface {
+        GetAll(UserInterface, error)
+        GetByID(UserInterface, error)
+    }
+
+    class User {
+        id : int
+        loginId : Login
+        name : string
+        phone_number : string
+    }
+
+    class Customer {
+    }
+
+    class Agent {
+        outletName : string
+        locationId : int
+        GetByLocation(city) ([]Agent, error)
+    }
+
+    UserInterface <|-- User
+    User <|-- Customer
+    User <|-- Agent
+
+' }
+
+' Package Auth  {
+
+    interface LoginInterface {
+        error Login(username, password, &User)
+        error Logout(token)
+    }
+
+    interface SessionInterface {
+        error Create(User, token)
+        error Validate(token, &User)
+        error Remove(token)
+    }
+
+    class Login {
+        id : int
+        username : string
+        password : string
+        loginAs : int
+        lastLogin : time.Time
+    }
+
+    class Session {
+        id : int
+        loginId : Login
+        token : string
+        expiredAt : time.Time
+    }
+
+    LoginInterface <|-- Login
+    SessionInterface <|-- Session
+
+' }
+
+' package Location {
+
+    interface LocationInterface {
+        error GetLocationByLogin(Login, LocationInterface*)
+    }
+
+    class Location {
+        id : int
+        createById : Login
+        address : string
+        province : string
+        city : string
+        district : string
+        latitude : Float
+        longitude : Float
+    }
+
+    LocationInterface <|-- Location
+' }
+
+Transaction o--* Customer
+Transaction o--* Agent
+Transaction o--* Location
+Login *--* Customer
+Login *--* Agent
+Location *--o Agent
+Login *--o Session
+Login *--o Location
+
+@enduml

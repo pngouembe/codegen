@@ -38,6 +38,4 @@ class CppFunction(LanguageSpecificFunction):
         if FunctionModifiers.ABSTRACT in self.modifiers:
             rep_str += " = 0"
 
-        rep_str += ";"
-
         return rep_str

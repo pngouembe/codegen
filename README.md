@@ -36,4 +36,5 @@ For now you can use the following command for testing
 
 ```bash
 python3 ./codegen.py -i PLANTUML -o CPP -p test_dir/test.plantuml -d test_dir
+python3 ./codegen.py -i PLANTUML -o CPP -p test_dir/plantuml/diagrams -d test_dir/plantuml/generated_code/
 ```

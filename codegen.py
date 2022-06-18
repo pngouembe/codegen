@@ -1,17 +1,18 @@
 #! python3
 
 import argparse
-from mylogger import log
-
 from os import path, walk
+from typing import List
 
 from inputs.ifactory import ParserFactory
 from inputs.interfaces import LanguageSpecificParser
 from inputs.supported_languages import InputLanguages
 from internal.translation import GeneratedOutput, UnitTranslation
+from mylogger import log
 from outputs.interfaces import LanguageSpecificGenerator
 from outputs.ofactory import GeneratorFactory
 from outputs.supported_languages import OutputLanguages
+
 
 def get_argparser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description="Code generation tool.")
@@ -32,35 +33,54 @@ def get_argparser() -> argparse.ArgumentParser:
                         help="Path to the output directory.")
     return parser
 
-if "__main__" == __name__:
 
+def get_files(base_paths: List[str]) -> List[str]:
+    paths = list()
+    for p in base_paths:
+        if path.isdir(p):
+            log.info(f"Getting input files from {p}")
+            for (dirpath, dirnames, filenames) in walk(p):
+                paths.extend([path.join(dirpath, f) for f in filenames])
+        else:
+            log.info(f"Using {p} as input file")
+            paths.append(p)
+
+    return paths
+
+
+def translate_file(path: str, output: OutputLanguages, input: InputLanguages) -> GeneratedOutput:
+    parser: LanguageSpecificParser = ParserFactory.create_parser(input)
+    unit: UnitTranslation = parser.translate(path)
+
+    generator: LanguageSpecificGenerator = GeneratorFactory.create_generator(
+        output)
+
+    return generator.translate(unit)
+
+
+def main():
     args = get_argparser().parse_args()
 
-    paths = list()
-    if path.isdir(args.path):
-        log.info(f"Getting input files from {args.path}")
-        for (dirpath, dirnames, filenames) in walk(args.path):
-            paths.extend([path.join(dirpath, f) for f in filenames])
-    else:
-        log.info(f"Using {args.path} as input file")
-        paths.append(args.path)
+    paths = get_files([args.path])
 
     file_count = len(paths)
     paths.sort()
-    for i, path in enumerate(paths):
-        log.info(f"#{i+1}/{file_count}: Translating {path}")
-        parser: LanguageSpecificParser = ParserFactory.create_parser(
-            InputLanguages[args.input_language])
-        unit: UnitTranslation = parser.translate(path)
+    for i, p in enumerate(paths):
+        log.info(f"#{i+1}/{file_count}: Translating {p}")
+        input_lang = InputLanguages[args.input_language]
+        output_lang = OutputLanguages[args.output_language]
 
-        generator: LanguageSpecificGenerator = GeneratorFactory.create_generator(
-            OutputLanguages[args.output_language])
+        translation: GeneratedOutput = translate_file(
+            path=p, input=input_lang, output=output_lang)
 
-        translation: GeneratedOutput = generator.translate(unit)
         if args.dest:
             translation.path = args.dest
         else:
-            translation.path = path.dirname(path)
+            translation.path = path.dirname(p)
 
         with open(translation.get_path(), "w") as f:
             f.write(translation.content)
+
+
+if "__main__" == __name__:
+    main()

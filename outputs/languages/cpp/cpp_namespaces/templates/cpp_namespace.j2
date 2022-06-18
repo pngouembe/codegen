@@ -5,7 +5,7 @@ namespace {{name}} {
 {%- if ns.variables %}
     {%- for var in ns.variables %}
 
-{{var}}
+{{var}};
     {%- endfor -%}
 {%- endif %}
 {%- if ns.enums %}
@@ -23,7 +23,7 @@ namespace {{name}} {
 {%- if ns.functions %}
     {%- for fct in ns.functions %}
 
-{{fct}}
+{{fct}};
     {%- endfor -%}
 {%- endif %}
 {% for name in ns.name|reverse %}

@@ -7,7 +7,7 @@ from mylogger import log
 from outputs.interfaces import LanguageSpecificType
 from outputs.languages.cpp.cpp_config.cpp_constants import CPP_NAMESPACE_SEP
 from outputs.languages.cpp.cpp_config.cpp_includes import (
-    INCLUDE_FILE_MATCHER_DICT, INCLUDE_FILES_SET)
+    INCLUDE_FILE_MATCHER_DICT, INCLUDE_FILES_SET, INCLUDE_WARNINGS_SET)
 
 
 class CppTypeModifier(Enum):
@@ -52,9 +52,11 @@ class CppTypes(LanguageSpecificType):
                         if include_file != "builtin":
                             INCLUDE_FILES_SET.add(INCLUDE_FILE_MATCHER_DICT[s])
                     except KeyError:
-                        log.warn(f"Warning {s} is an unknown type")
+                        INCLUDE_WARNINGS_SET.add(
+                            f"Warning {s} is an unknown type")
                 else:
-                    log.warn(f"Warning {s} is an unknown type")
+                    INCLUDE_WARNINGS_SET.add(
+                        f"Warning {s} is an unknown type")
         return cls(name=internal.name, namespace=internal.namespace, namespace_sep=CPP_NAMESPACE_SEP)
 
     def __repr__(self) -> str:

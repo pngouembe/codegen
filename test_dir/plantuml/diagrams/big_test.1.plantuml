@@ -34,7 +34,7 @@ end note
         Rating : uint32_t
     }
 
-note top of Object
+NOTE top of Object
   In java, <size:18>every</size> <u>class</u>
   <b>extends</b>
   <i>this</i> one.
@@ -103,7 +103,7 @@ end note
     class Agent {
         outletName : std.string
         locationId : int
-        GetByLocation(city) (*Agent, error)
+        error GetByLocation(city, *Agent)
     }
 
     UserInterface <|-- User

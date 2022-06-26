@@ -92,7 +92,7 @@ public:
     std::string outletName;
     int locationId;
 public:
-    GetByLocation(city) (*Agent, error);
+    error GetByLocation(city, *Agent);
 };
 
 class LoginInterface {

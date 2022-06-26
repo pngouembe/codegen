@@ -11,7 +11,8 @@ from outputs.languages.cpp.cpp_config.cpp_constants import (INCLUDE_CFG_FILE,
                                                             STD_INCLUDE_FILE,
                                                             TEMPLATE_NAME)
 from outputs.languages.cpp.cpp_config.cpp_includes import (
-    INCLUDE_FILES_DICT, INCLUDE_FILES_SET, update_include_file_matcher_dict)
+    INCLUDE_FILES_DICT, INCLUDE_FILES_SET, INCLUDE_WARNINGS_SET,
+    update_include_file_matcher_dict)
 
 from .cpp_classes import CppClass
 from .cpp_enums import CppEnum
@@ -51,8 +52,11 @@ class CppGenerator(LanguageSpecificGenerator):
         include_guard = str.upper(unit_translation.name + "_hpp")
 
         includes_set = sorted(INCLUDE_FILES_SET.copy())
-        includes_set
         INCLUDE_FILES_SET.clear()
+        for w in INCLUDE_WARNINGS_SET:
+            log.warn(w)
+        INCLUDE_WARNINGS_SET.clear()
+
         log.debug(f"include set : {includes_set}")
         ret_str = template.render(ns_list=self.ns_list, cls_list=self.cls_list,
                                   include_guard=include_guard, includes_set=includes_set, enum_list=self.enum_list)

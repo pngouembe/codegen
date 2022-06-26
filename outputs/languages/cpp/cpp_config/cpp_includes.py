@@ -4,6 +4,7 @@ import yaml
 from outputs.languages.cpp.cpp_config.cpp_constants import STD_INCLUDE_FILE
 
 INCLUDE_FILES_SET = set()
+INCLUDE_WARNINGS_SET = set()
 INCLUDE_FILES_DICT = dict()
 
 # Initializing the types to include file dictionary

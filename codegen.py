@@ -4,11 +4,12 @@ import argparse
 from os import makedirs, path, walk
 from typing import List, Tuple
 
+import mylogger
 from inputs.ifactory import ParserFactory
 from inputs.interfaces import LanguageSpecificParser
 from inputs.supported_languages import InputLanguages
 from internal.translation import GeneratedOutput, UnitTranslation
-from mylogger import log
+from mylogger import DEBUG, log
 from outputs.interfaces import LanguageSpecificGenerator
 from outputs.ofactory import GeneratorFactory
 from outputs.supported_languages import OutputLanguages
@@ -31,6 +32,11 @@ def get_argparser() -> argparse.ArgumentParser:
                         required=True)
     parser.add_argument("-d", "--dest",
                         help="Path to the output directory.")
+
+    parser.add_argument("-v", "--verbose",
+                        help="Enable debug logs.",
+                        action='store_true')
+
     return parser
 
 
@@ -51,8 +57,10 @@ def get_files(base_paths: List[str]) -> List[Tuple[str, str]]:
 
 def translate_file(path: str, output: OutputLanguages, input: InputLanguages) -> GeneratedOutput:
     parser: LanguageSpecificParser = ParserFactory.create_parser(input)
+    log.info("Parsing the input file")
     unit: UnitTranslation = parser.translate(path)
 
+    log.info("Generating the output file")
     generator: LanguageSpecificGenerator = GeneratorFactory.create_generator(
         output)
 
@@ -61,6 +69,9 @@ def translate_file(path: str, output: OutputLanguages, input: InputLanguages) ->
 
 def main():
     args = get_argparser().parse_args()
+
+    if args.verbose:
+        log.setLevel(DEBUG)
 
     paths = get_files([args.path])
 
@@ -71,9 +82,13 @@ def main():
         input_lang = InputLanguages[args.input_language]
         output_lang = OutputLanguages[args.output_language]
 
+        log.info(f"Input language: {input_lang.name}")
+        log.info(f"Output language: {output_lang.name}")
+
+        log.info(f"Starting translation")
         translation: GeneratedOutput = translate_file(
             path=file, input=input_lang, output=output_lang)
-
+        log.info(f"Translation done")
         if args.dest:
             dest = args.dest
         else:
@@ -83,8 +98,10 @@ def main():
         if not path.exists(translation.path):
             makedirs(translation.path)
 
+        log.info(f"Writting translation to {translation.get_path()}")
         with open(translation.get_path(), "w") as f:
             f.write(translation.content)
+        log.info(f"Translation successfully written")
 
 
 if "__main__" == __name__:

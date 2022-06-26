@@ -15,9 +15,6 @@ from internal.types import InternalType
 from internal.visibility import Visibility
 from mylogger import log
 
-with open(path.join(path.dirname(__file__), "./keywords.yml")) as f:
-    PLANTUML_KEYWORDS = yaml.safe_load(f)
-
 PLANTUML_VISIBILITY_MATCHER = {
     "+": Visibility.PUBLIC,
     "-": Visibility.PRIVATE,
@@ -25,10 +22,57 @@ PLANTUML_VISIBILITY_MATCHER = {
     "~": Visibility.PACKAGE_PRIVATE
 }
 
+PLANTUML_ARROWS = {
+    "<|--",
+    "--|>",
+    "o--*",
+    "*--*",
+    "*--o",
+}
+
 PLANTUML_FUNCTION_MODIFIER_MATCHER = {
     "{abstract}": FunctionModifiers.ABSTRACT,
     "{method}": None,
 }
+
+PLANTUML_CONTEXT_KEYWORDS = {
+    "namespace": InternalNamespace,
+    "class": InternalClass,
+    "enum": InternalEnum,
+    "interface": InternalClass,
+    "abstract class": InternalClass,
+}
+
+
+def attribute_from_str(str: str) -> InternalAttribute:
+    tmp = str.split()
+    try:
+        a_visibility = PLANTUML_VISIBILITY_MATCHER[tmp[0]]
+        tmp.pop(0)
+    except KeyError:
+        # No visibility given, using Public as default
+        a_visibility = Visibility.PUBLIC
+
+    if tmp[0] == "{field}":
+        tmp.pop(0)
+
+    if len(tmp) >= 3 and tmp[-2] == "=":
+        a_default = tmp[-1]
+        tmp = tmp[:-2]
+    else:
+        a_default = None
+
+    if len(tmp) >= 3 and tmp[1] == ":":
+        a_name = tmp[0]
+        a_type = InternalType.from_string(" ".join(tmp[2:]))
+    elif len(tmp) >= 2:
+        a_name = tmp[-1]
+        a_type = InternalType.from_string(" ".join(tmp[:-1]))
+    else:
+        a_name = tmp[0]
+        a_type = None
+
+    return InternalAttribute(name=a_name, type=a_type, default_value=a_default, visibility=a_visibility)
 
 
 def function_from_str(str: str) -> InternalFunction:
@@ -51,24 +95,27 @@ def function_from_str(str: str) -> InternalFunction:
         pre_name = ""
 
     f_type = None
+    f_visibility = Visibility.PUBLIC
     modifiers = set()
-    try:
-        visibility = PLANTUML_VISIBILITY_MATCHER[pre_name[0]]
-    except KeyError:
-        visibility = Visibility.PUBLIC
-    else:
-        pre_name = pre_name[1::]
 
-    for elem in pre_name.split():
+    if pre_name:
         try:
-            modifiers.add(PLANTUML_FUNCTION_MODIFIER_MATCHER[elem])
+            f_visibility = PLANTUML_VISIBILITY_MATCHER[pre_name[0]]
         except KeyError:
-            pass
+            f_visibility = Visibility.PUBLIC
         else:
-            continue
+            pre_name = pre_name[1::]
 
-        # At this point the elem can be considered as a return type
-        f_type = InternalType.from_string(elem)
+        for elem in pre_name.split():
+            try:
+                modifiers.add(PLANTUML_FUNCTION_MODIFIER_MATCHER[elem])
+            except KeyError:
+                pass
+            else:
+                continue
+
+            # At this point the elem can be considered as a return type
+            f_type = InternalType.from_string(elem)
 
     arg_list = list()
     if args:
@@ -76,121 +123,100 @@ def function_from_str(str: str) -> InternalFunction:
             arg = arg.strip()
             arg_list.append(InternalArgument.from_string(arg))
 
-    return InternalFunction(name=f_name, arguments=arg_list, return_type=f_type, visibility=visibility, modifiers=modifiers)
+    return InternalFunction(name=f_name, arguments=arg_list, return_type=f_type, visibility=f_visibility, modifiers=modifiers)
 
 
-PLANTUML_KEYWORD_MATCHER = {
-    "namespace": InternalNamespace,
-    "interface": InternalClass,
-}
+def flatten_string(string: str) -> str:
+    # Removing tabs and extra spaces at the beginning of the lines
+    ret_str = re.sub(r"^\s+", "", string, flags=re.MULTILINE)
+    # Ensuring that opening brackets are on the same line as the context name
+    ret_str = re.sub(r"(.*)\n\s*\{\s*$", r"\1 {", ret_str, flags=re.MULTILINE)
+    # Ensuring that the opening bracket is preceded by a whitespace
+    ret_str = re.sub(r"(\S)\{", r"\1 {", ret_str, flags=re.MULTILINE)
+    # Ensuring that the visibility indicators are separated from the names
+    ret_str = re.sub(r"^([\+\-\~\#])(\S)", r"\1 \2",
+                     ret_str, flags=re.MULTILINE)
+    # Removing multiline comments
+    ret_str = re.sub(r"^/'[^']*'/\s", "", ret_str,
+                     flags=re.MULTILINE)
+
+    # Removing single line comments
+    ret_str = re.sub(r"^'.*\s", "", ret_str, flags=re.MULTILINE)
+
+    # Removing Plantuml related elements
+    ret_str = re.sub(r"^\@.*\s", "", ret_str,
+                     flags=re.MULTILINE)  # Plantuml anchors
+    ret_str = re.sub(r"^\!.*\s", "", ret_str,
+                     flags=re.MULTILINE)  # Plantuml commands
+
+    # TODO: Support notes as documentation
+    # Removing single line notes
+    ret_str = re.sub(r"^note [^\"]*\".+\s", "", ret_str, flags=re.MULTILINE)
+
+    # Removing multiline notes
+    tmp_list = ret_str.splitlines()
+    ret_list = []
+    note_detected = False
+    for line in tmp_list:
+        if line.lower().startswith("note"):
+            note_detected = True
+            continue
+        elif line.lower().startswith("end note"):
+            note_detected = False
+            continue
+        elif note_detected:
+            continue
+
+        ret_list.append(line)
+
+    ret_str = "\n".join(ret_list)
+
+    return ret_str
 
 
 @dataclass
 class PlantumlParser(LanguageSpecificParser):
     def translate(self, file: str) -> UnitTranslation:
         with open(file, "r") as f:
-            file_content = f.read().splitlines()
+            test_content = flatten_string(f.read())
+            file_content = test_content.splitlines()
 
         unit = UnitTranslation(name=path.splitext(path.basename(file))[0])
 
         ns_sep = "."
+
         context = [unit]
-        for line in file_content:
-            if line.strip().startswith("'"):
-                # this is a commented line, ignore it
-                continue
-
-            if line.strip().startswith("/'"):
-                # this is a commented line, ignore it
-                continue
-
-            if line.strip().startswith("@"):
-                # this is a line to ignore
-                continue
-
-            if line.strip().upper().startswith("NOTE"):
-                # this is a line to ignore
-                continue
-
-            # Retrieving the name after namespace and before the {
-            m = re.search(r"namespace\s+([^\{\s]+)", line, re.IGNORECASE)
-            if m:
-                log.debug(f"Found a namespace: {m.group(1)}")
-                ns = InternalNamespace(name=m.group(1).split(ns_sep))
-                context.append(ns)
-                line = line.split(m.group(0), maxsplit=1)[-1]
-
-            # Retrieving the name after interface and before the {
-            m = re.search(r"interface\s+([^\{\s]+)", line, re.IGNORECASE)
-            if m:
-                log.debug(f"Found a interface: {m.group(1)}")
-                cls = InternalClass(name=m.group(1))
-                if "{" in line:
-                    context.append(cls)
-                line = line.split(m.group(0), maxsplit=1)[-1]
-
-            # Retrieving the name after class and before the {
-            m = re.search(r"class\s+([^\{\s]+)", line, re.IGNORECASE)
-            if m:
-                log.debug(f"Found a class: {m.group(1)}")
-                cls = InternalClass(name=m.group(1))
-                if "{" in line:
-                    context.append(cls)
-                line = line.split(m.group(0), maxsplit=1)[-1]
-
-            # Retrieving the name after enum and before the {
-            m = re.search(r"enum\s+([^\{\s]+)", line, re.IGNORECASE)
-            if m:
-                log.debug(f"Found an enum: {m.group(1)}")
-                cls = InternalEnum(name=m.group(1))
-                if "{" in line:
-                    context.append(cls)
-                line = line.split(m.group(0), maxsplit=1)[-1]
-
-            # Check if method identifiers are in the line
-            m = re.search(r"(\{method\}|\{abstract\}).*", line)
-            if m:
-                function = function_from_str(line)
-                log.debug(f"function repr: {function}")
-                try:
-                    context[-1].add_function(function)
-                except IndexError:
-                    log.warn(f"Index problem with the current context: {context}")
-                line = line.split(m.group(0), maxsplit=1)[-1]
-
-            # Check if the line contains something similar to a function signature with parenthesis
-            m = re.search(r"[^\(]+\([^\)]*\).*", line)
-            if m:
-                function = function_from_str(line)
-                log.debug(f"function repr: {function}")
-                try:
-                    context[-1].add_function(function)
-                except IndexError:
-                    log.warn(f"Index problem with the current context: {context}")
-
-                line = line.split(m.group(0), maxsplit=1)[-1]
-
-            # Check if the line contains attributes
-            m = re.search(r"([^\+\-\#\~\s\{\}\(]+)", line)
-            if m:
-                str_arg = m.group(1)
-
-                # Check if the attributes has a type
-                t = re.search(r"[^\:]\:([^\:]+)", line)
-                if t:
-                    str_arg = " ".join([t.group(1), m.group(1)])
-                attribute = InternalAttribute.from_string(str_arg)
-                log.debug(f"attribute repr: {attribute}")
-                try:
-                    context[-1].add_attribute(attribute)
-                except IndexError:
-                    log.warn(
-                        f"Index problem with the current context: {context}")
-
-                line = line.split(m.group(0), maxsplit=1)[-1]
-
-            m = re.search(r"\}", line)
-            if m:
+        for i, line in enumerate(file_content):
+            if line != "}":
+                pattern = r"({})\s+(\S+)".format("|".join(PLANTUML_CONTEXT_KEYWORDS))
+                m = re.match(pattern, line, flags=re.IGNORECASE)
+                if m:
+                    # Creating the proper context object and adding it to the context list
+                    context.append(
+                        PLANTUML_CONTEXT_KEYWORDS[m.group(1).lower()](name=m.group(2)))
+                    continue
+                else:
+                    # TODO: support the arrows
+                    if [a for a in PLANTUML_ARROWS if a in line]:
+                        continue
+                    elif "(" not in line:
+                        attribute = attribute_from_str(line)
+                        log.debug(f"attribute repr: {attribute}")
+                        try:
+                            context[-1].add_attribute(attribute)
+                        except IndexError:
+                            log.warn(
+                                f"Index problem with the current context: {context}")
+                    else:
+                        function = function_from_str(line)
+                        log.debug(f"function repr: {function}")
+                        try:
+                            context[-1].add_function(function)
+                        except IndexError:
+                            log.warn(
+                                f"Index problem with the current context: {context}")
+                    continue
+            else:
                 try:
                     if isinstance(context[-1], InternalClass):
                         context[-2].add_class(context[-1])
@@ -200,8 +226,9 @@ class PlantumlParser(LanguageSpecificParser):
                         context[-2].add_namespace(context[-1])
                     log.debug(f'end of {context[-1].name}')
                     context.pop()
-                    line = line.split(m.group(0), maxsplit=1)[-1]
+                    continue
                 except IndexError:
-                    log.warn(f"Index problem with the current context: {context}")
+                    log.warn(
+                        f"Index problem with the current context: {context}")
 
         return unit

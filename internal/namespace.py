@@ -16,6 +16,8 @@ class InternalNamespace:
     enums: List[InternalEnum] = field(default_factory=list)
 
     def __post_init__(self):
+        if isinstance(self.name, str):
+            self.name = [self.name]
         self.internal_name = ""
         self._update_internal_name()
 

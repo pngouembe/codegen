@@ -44,8 +44,8 @@ public:
 };
 
 class Notifier {
-public:
-    std::list<ObserverInterface*>;
+protected:
+    std::list<ObserverInterface*> observers_;
 public:
     void RegisterObserver(ObserverInterface* observer);
     void UnregisterObserver(ObserverInterface* observer);
@@ -53,10 +53,10 @@ public:
 };
 
 class MediaStreamTrack {
-public:
-    bool;
-    std::string;
-    MediaStreamTrackInterface::TrackState;
+private:
+    bool enabled_;
+    std::string id_;
+    MediaStreamTrackInterface::TrackState state_;
 public:
     MediaStreamTrackInterface::TrackState state();
     bool enabled();
@@ -66,17 +66,17 @@ protected:
 };
 
 class VideoSourceBase {
-public:
-    std::vector<SinkPair>;
+private:
+    std::vector<SinkPair> sinks_;
 protected:
     SinkPair* FindSinkPair(const VideoSinkInterface<webrtc::VideoFrame>* sink);
 };
 
 class VideoTrack {
 public:
-    void;
+    rtc::scoped_refptr<VideoTrackSourceInterface> video_source_;
 public:
-    rtc::scoped_refptr<VideoTrack> Create(...);
+    void AddOrUpdateSink(rtc::VideoSinkInterface<VideoFrame>* sink, const rtc::VideoSinkWants& wants);
     void RemoveSink(rtc::VideoSinkInterface<VideoFrame>* sink);
     VideoTrackSourceInterface* GetSource();
     ContentHint content_hint();

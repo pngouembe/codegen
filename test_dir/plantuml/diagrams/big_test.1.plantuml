@@ -1,30 +1,44 @@
 ' Uml taken from https://github.com/masdikaid/rakamin-final-project/blob/cc463a45daf64bd9ebb26c2b8cb4d10aabd8bacd/documentation/class.plantuml for test purposes
 @startuml
 
+note "This is a floating note" as N1
+note "This note is connected\nto several objects." as N2
+
+note top of Object
+  In java, <size:18>every</size> <u>class</u>
+  <b>extends</b>
+  <i>this</i> one.
+end note
 
 ' package Transaction  {
 
     class TransactionEntity {
-        ID : uint
+        ID : uint32_t
         CreatedAt : time
         UpdatedAt : time
         DeletedAt : time
-        Customer_id : uint
+        Customer_id : uint32_t
         Customer : CustomerEntity
-        Agent_id : uint
+        Agent_id : uint32_t
         Agent : AgentEntity
-        Address : string
-        Province : string
-        City : string
-        District : string
+        Address : std.string
+        Province : std.string
+        City : std.string
+        District : std.string
         Latitude : decimal
         Longitude : decimal
-        Services : string
-        Type : string
-        Amount : uint
-        Status : uint
-        Rating : uint
+        Services : std.string
+        Type : std.string
+        Amount : uint32_t
+        Status : uint32_t
+        Rating : uint32_t
     }
+
+note top of Object
+  In java, <size:18>every</size> <u>class</u>
+  <b>extends</b>
+  <i>this</i> one.
+end note
 
     interface TransactionContractInterface {
         TransactionContractInterface FromEntity(ent TransactionEntity)
@@ -32,24 +46,24 @@
     }
 
     class TransactionContract {
-        ID : uint `json:"id_transaksi"`
-        Status : int `json:"status"`
-        CreatedAt : time `json:"created_at"`
-        Services : string `json:"jenis_layanan"`
-        Type : string `json:"jenis_transaksi"`
-        Amount : uint `json:"nominal_transaksi_idr"`
-        Rating : uint `json:"rating"`
-        Agent : AgentContract `json:"agen"`
-        Customer : CustomerContract `json:"customer"`
+        ID : uint32_t
+        Status : int
+        CreatedAt : time
+        Services : std.string
+        Type : std.string
+        Amount : uint32_t
+        Rating : uint32_t
+        Agent : AgentContract
+        Customer : CustomerContract
     }
 
     interface TransactionRepositoryInterface {
-        []*TransactionEntity GetAll()
-        []*TransactionEntity GetAllByID(usertype string, id uint)
-        *TransactionEntity GetByID(id uint)
-        *TransactionEntity Create(ent *TransactionEntity)
-        *TransactionEntity Update(ent *TransactionEntity)
-        error Delete(ent *TransactionEntity)
+        TransactionEntity* GetAll()
+        TransactionEntity* GetAllByID(usertype std.string, id uint32_t)
+        TransactionEntity* GetByID(id uint32_t)
+        TransactionEntity* Create(ent TransactionEntity*)
+        TransactionEntity* Update(ent TransactionEntity*)
+        error Delete(ent TransactionEntity*)
     }
 
 
@@ -59,7 +73,7 @@
         customerId : Customer
         agentId : Agent
         locationId : Location
-        type : varchar
+        type : char
         amount : int
         status : int
         ratting : int
@@ -79,17 +93,17 @@
     class User {
         id : int
         loginId : Login
-        name : string
-        phone_number : string
+        name : std.string
+        phone_number : std.string
     }
 
     class Customer {
     }
 
     class Agent {
-        outletName : string
+        outletName : std.string
         locationId : int
-        GetByLocation(city) ([]Agent, error)
+        GetByLocation(city) (*Agent, error)
     }
 
     UserInterface <|-- User
@@ -113,8 +127,8 @@
 
     class Login {
         id : int
-        username : string
-        password : string
+        username : std.string
+        password : std.string
         loginAs : int
         lastLogin : time.Time
     }
@@ -122,7 +136,7 @@
     class Session {
         id : int
         loginId : Login
-        token : string
+        token : std.string
         expiredAt : time.Time
     }
 
@@ -133,19 +147,20 @@
 
 ' package Location {
 
-    interface LocationInterface {
+    interface LocationInterface
+    {
         error GetLocationByLogin(Login, LocationInterface*)
     }
 
     class Location {
         id : int
         createById : Login
-        address : string
-        province : string
-        city : string
-        district : string
-        latitude : Float
-        longitude : Float
+        address : std.string
+        province : std.string
+        city : std.string
+        district : std.string
+        latitude : float32_t
+        longitude : float32_t
     }
 
     LocationInterface <|-- Location

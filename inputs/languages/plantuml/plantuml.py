@@ -127,19 +127,32 @@ def function_from_str(str: str) -> InternalFunction:
 
 
 def flatten_string(string: str) -> str:
+    ret_str = string
+    # Check for namespace separator config
+    m = re.search(r"^set namespaceSeparator\s+(\S+)",
+                  ret_str, flags=re.MULTILINE)
+    if m:
+        # Replace the set separator with the default one
+        ret_str = re.sub(m.group(1), ".", ret_str)
+        # Remove the line that sets the namespace separator
+        ret_str = re.sub(r"^set namespaceSeparator.*\s",
+                         "", ret_str,  flags=re.MULTILINE)
+
     # Removing tabs and extra spaces at the beginning of the lines
-    ret_str = re.sub(r"^\s+", "", string, flags=re.MULTILINE)
+    ret_str = re.sub(r"^\s+", "", ret_str, flags=re.MULTILINE)
+
     # Ensuring that opening brackets are on the same line as the context name
     ret_str = re.sub(r"(.*)\n\s*\{\s*$", r"\1 {", ret_str, flags=re.MULTILINE)
     # Ensuring that the opening bracket is preceded by a whitespace
     ret_str = re.sub(r"(\S)\{", r"\1 {", ret_str, flags=re.MULTILINE)
+
     # Ensuring that the visibility indicators are separated from the names
     ret_str = re.sub(r"^([\+\-\~\#])(\S)", r"\1 \2",
                      ret_str, flags=re.MULTILINE)
+
     # Removing multiline comments
     ret_str = re.sub(r"^/'[^']*'/\s", "", ret_str,
                      flags=re.MULTILINE)
-
     # Removing single line comments
     ret_str = re.sub(r"^'.*\s", "", ret_str, flags=re.MULTILINE)
 
@@ -152,7 +165,6 @@ def flatten_string(string: str) -> str:
     # TODO: Support notes as documentation
     # Removing single line notes
     ret_str = re.sub(r"^note [^\"]*\".+\s", "", ret_str, flags=re.MULTILINE)
-
     # Removing multiline notes
     tmp_list = ret_str.splitlines()
     ret_list = []

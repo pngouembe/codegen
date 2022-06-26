@@ -1,8 +1,8 @@
 #! python3
 
 import argparse
-from os import path, walk
-from typing import List
+from os import makedirs, path, walk
+from typing import List, Tuple
 
 from inputs.ifactory import ParserFactory
 from inputs.interfaces import LanguageSpecificParser
@@ -34,17 +34,18 @@ def get_argparser() -> argparse.ArgumentParser:
     return parser
 
 
-def get_files(base_paths: List[str]) -> List[str]:
+def get_files(base_paths: List[str]) -> List[Tuple[str, str]]:
     paths = list()
     for p in base_paths:
         if path.isdir(p):
             log.info(f"Getting input files from {p}")
             for (dirpath, dirnames, filenames) in walk(p):
-                paths.extend([path.join(dirpath, f) for f in filenames])
+                files = [path.join(dirpath, f) for f in filenames]
+                relpaths = [path.dirname(path.relpath(f, p)) for f in files]
+                paths.extend(list(zip(relpaths, files)))
         else:
             log.info(f"Using {p} as input file")
-            paths.append(p)
-
+            paths.append((p, '.'))
     return paths
 
 
@@ -65,18 +66,22 @@ def main():
 
     file_count = len(paths)
     paths.sort()
-    for i, p in enumerate(paths):
-        log.info(f"#{i+1}/{file_count}: Translating {p}")
+    for i, (relpath, file) in enumerate(paths):
+        log.info(f"#{i+1}/{file_count}: Translating {file}")
         input_lang = InputLanguages[args.input_language]
         output_lang = OutputLanguages[args.output_language]
 
         translation: GeneratedOutput = translate_file(
-            path=p, input=input_lang, output=output_lang)
+            path=file, input=input_lang, output=output_lang)
 
         if args.dest:
-            translation.path = args.dest
+            dest = args.dest
         else:
-            translation.path = path.dirname(p)
+            dest = path.dirname()
+
+        translation.path = path.join(dest, relpath)
+        if not path.exists(translation.path):
+            makedirs(translation.path)
 
         with open(translation.get_path(), "w") as f:
             f.write(translation.content)

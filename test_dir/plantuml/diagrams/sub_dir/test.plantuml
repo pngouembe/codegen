@@ -1,0 +1,86 @@
+@startuml
+
+
+
+
+
+/' Objects '/
+
+namespace Microsoft {
+	namespace Console
+	{
+		enum HostSignals {
+			EndTask
+			NotifyApp
+			SetForeground
+		}
+
+		class HostSignalEndTaskData {
+			+ctrlFlags : uint32_t
+			+eventType : uint32_t
+			+processId : uint32_t
+			+sizeInBytes : uint32_t
+		}
+
+		class HostSignalNotifyAppData {
+			+processId : uint32_t
+			+sizeInBytes : uint32_t
+		}
+
+		class HostSignalSetForegroundData {
+			+isForeground : bool
+			+processId : uint32_t
+			+sizeInBytes : uint32_t
+		}
+	}
+}
+namespace Microsoft2 {
+	namespace Console {
+		enum HostSignals {
+			EndTask
+			NotifyApp
+			SetForeground
+		}
+
+		class HostSignalEndTaskData {
+			+ctrlFlags : uint32_t
+			+eventType : uint32_t
+			+processId : uint32_t
+			+sizeInBytes : uint32_t
+		}
+
+		class HostSignalNotifyAppData {
+			+processId : uint32_t
+			+sizeInBytes : uint32_t
+		}
+
+		class HostSignalSetForegroundData {
+			+isForeground : bool
+			+processId : uint32_t
+			+sizeInBytes : uint32_t
+		}
+	}
+}
+
+
+
+
+
+/' Inheritance relationships '/
+
+
+
+
+/' Aggregation relationships
+	Test
+'/
+
+
+
+
+
+/' Nested objects '/
+
+
+
+@enduml

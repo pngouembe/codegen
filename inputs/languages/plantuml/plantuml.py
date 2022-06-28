@@ -1,6 +1,7 @@
 import re
 from dataclasses import dataclass
 from os import path
+from typing import Dict, Tuple
 
 from inputs.interfaces import LanguageSpecificParser
 from internal.arguments import InternalArgument
@@ -127,8 +128,9 @@ def function_from_str(str: str) -> InternalFunction:
 # TODO: Support Packages
 
 
-def flatten_string(string: str) -> str:
+def flatten_string(string: str) -> Tuple[str, Dict[str, str]]:
     ret_str = string
+
     # Check for namespace separator config
     m = re.search(r"^set namespaceSeparator\s+(\S+)",
                   ret_str, flags=re.MULTILINE)
@@ -136,7 +138,7 @@ def flatten_string(string: str) -> str:
         # Replace the set separator with the default one
         ret_str = re.sub(m.group(1), ".", ret_str)
         # Remove the line that sets the namespace separator
-        ret_str = re.sub(r"^set namespaceSeparator.*\s",
+        ret_str = re.sub(r"^set namespaceSeparator.*\s?",
                          "", ret_str,  flags=re.MULTILINE)
 
     # Removing tabs and extra spaces at the beginning of the lines
@@ -152,53 +154,73 @@ def flatten_string(string: str) -> str:
                      ret_str, flags=re.MULTILINE)
 
     # Removing multiline comments
-    ret_str = re.sub(r"^/'[^']*'/\s", "", ret_str,
+    ret_str = re.sub(r"^/'[^']*'/\s?", "", ret_str,
                      flags=re.MULTILINE)
     # Removing single line comments
-    ret_str = re.sub(r"^'.*\s", "", ret_str, flags=re.MULTILINE)
+    ret_str = re.sub(r"^'.*\s?", "", ret_str, flags=re.MULTILINE)
 
-    # Removing Plantuml related elements
-    ret_str = re.sub(r"^\@.*\s", "", ret_str,
-                     flags=re.MULTILINE)  # Plantuml anchors
-    ret_str = re.sub(r"^\!.*\s", "", ret_str,
-                     flags=re.MULTILINE)  # Plantuml commands
-
-    # TODO: Support notes as documentation
+    # TODO: Support single line notes as documentation
     # Removing single line notes
-    ret_str = re.sub(r"^note [^\"]*\".+\s", "", ret_str, flags=re.MULTILINE)
-    # Removing multiline notes
+    # Remove the 'note "XXX" as X' type of notes
+    ret_str = re.sub(r"^note [^\"]*\"[^\"]+\"\s+as.*\s?", "", ret_str, flags=re.MULTILINE)
+    # Remove the 'note X of X : XXX' type of notes
+    ret_str = re.sub(r"^note [^\:]*\:[^\:].*\s?", "", ret_str, flags=re.MULTILINE)
+    # Separating multiline notes
     tmp_list = ret_str.splitlines()
     ret_list = []
+    note_dict = {}
+    note_ctx = None
     note_detected = False
     for line in tmp_list:
         if line.lower().startswith("note"):
             note_detected = True
+            m = re.search(r"^note\s+\w+\s+of\s+(.*)", line, flags=re.MULTILINE)
+            if m:
+                note_dict[m.group(1)] = ""
+                note_ctx = m.group(1)
+            else:
+                note_ctx = None
             continue
         elif line.lower().startswith("end note"):
             note_detected = False
+            note_ctx = None
             continue
         elif note_detected:
+            if note_ctx:
+                if note_dict[note_ctx]:
+                    note_dict[note_ctx] = "\n".join([note_dict[note_ctx], line])
+                else:
+                    note_dict[note_ctx] = line
             continue
 
         ret_list.append(line)
 
     ret_str = "\n".join(ret_list)
 
-    return ret_str
+    # Removing Plantuml related elements
+    ret_str = re.sub(r"^\@.*\s?", "", ret_str,
+                     flags=re.MULTILINE)  # Plantuml anchors
+    ret_str = re.sub(r"^\!.*\s?", "", ret_str,
+                     flags=re.MULTILINE)  # Plantuml commands
+
+
+    log.error(ret_str)
+    log.error(note_dict)
+    return ret_str, note_dict
 
 
 @dataclass
 class PlantumlParser(LanguageSpecificParser):
     def translate(self, file: str) -> UnitTranslation:
         with open(file, "r") as f:
-            test_content = flatten_string(f.read())
-            file_content = test_content.splitlines()
+            flat_content, note_dict = flatten_string(f.read())
+            note_keys = note_dict.keys()
+            file_content = flat_content.splitlines()
 
         unit = UnitTranslation(name=path.splitext(path.basename(file))[0])
 
-        ns_sep = "."
-
         context = [unit]
+        # TODO: Keep the line number feature
         for i, line in enumerate(file_content):
             if line != "}":
                 pattern = r"({})\s+(\S+)".format("|".join(PLANTUML_CONTEXT_KEYWORDS))
@@ -222,6 +244,10 @@ class PlantumlParser(LanguageSpecificParser):
                                 f"Index problem with the current context: {context}")
                     else:
                         function = function_from_str(line)
+                        for k in note_keys:
+                            if function.name in k:
+                                function.doc = note_dict[k].splitlines()
+
                         log.debug(f"function repr: {function}")
                         try:
                             context[-1].add_function(function)

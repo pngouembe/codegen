@@ -14,10 +14,10 @@ from outputs.languages.cpp.cpp_config.cpp_includes import (
     INCLUDE_FILES_DICT, INCLUDE_FILES_SET, INCLUDE_WARNINGS_SET,
     update_include_file_matcher_dict)
 
-from .cpp_classes import CppClass
-from .cpp_enums import CppEnum
-from .cpp_functions import CppFunction
-from .cpp_namespaces import CppNamespaces
+from outputs.languages.cpp.cpp_classes import CppClass
+from outputs.languages.cpp.cpp_enums import CppEnum
+from outputs.languages.cpp.cpp_functions import CppFunction
+from outputs.languages.cpp.cpp_namespaces import CppNamespaces
 
 
 class CppGenerator(LanguageSpecificGenerator):

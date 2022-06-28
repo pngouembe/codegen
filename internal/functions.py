@@ -20,3 +20,4 @@ class InternalFunction:
     return_type: InternalType = None
     visibility: Visibility = Visibility.PUBLIC
     modifiers: Set[FunctionModifiers] = field(default_factory=set)
+    doc: List[str] = field(default_factory=list)

@@ -11,8 +11,30 @@ Interface TestClass1{
 
 interface TestClass2{
     # {abstract} ns1::ns2::char protected_function(ns::int arg1 = 0, char arg2 = NULL)
-    - package_private_function()
+    - private_function()
     wallah()
+    test()
 }
+note right of TestClass1::"public_function(int arg)"
+    coucou
+    on
+    multi
+    line
+end note
+
+note left of TestClass1::"private_function(char arg1, int arg2)"
+    coucou 2
+end note
+
+note left of TestClass2::protected_function
+    coucou 3
+end note
+note left of TestClass2::private_function
+    coucou 4
+end note
+note left of TestClass2::wallah
+    coucou 5
+end note
 }
+
 @enduml

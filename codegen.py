@@ -51,7 +51,7 @@ def get_files(base_paths: List[str]) -> List[Tuple[str, str]]:
                 paths.extend(list(zip(relpaths, files)))
         else:
             log.info(f"Using {p} as input file")
-            paths.append((p, '.'))
+            paths.append(('', p))
     return paths
 
 
@@ -93,8 +93,10 @@ def main():
             dest = args.dest
         else:
             dest = path.dirname()
-
-        translation.path = path.join(dest, relpath)
+        if relpath:
+            translation.path = path.join(dest, relpath)
+        else:
+            translation.path = dest
         if not path.exists(translation.path):
             makedirs(translation.path)
 

@@ -15,15 +15,25 @@ class CppFunction(LanguageSpecificFunction):
         a_list = [CppArgument.from_internal(a) for a in internal.arguments]
         return_type = CppTypes.from_internal(
             internal.return_type) if internal.return_type else None
-
+        # TODO: Find a better way to keep the indentation
+        if internal.doc:
+            doc_list = ["/**"]
+            doc_list.extend([f"     * {l}" for l in internal.doc])
+            doc_list.append("     */\n    ")
+        else:
+            doc_list = list()
         return cls(name=internal.name,
                    arguments=a_list,
                    return_type=return_type,
                    visibility=internal.visibility,
-                   modifiers=internal.modifiers)
+                   modifiers=internal.modifiers,
+                   doc=doc_list)
 
     def __repr__(self) -> str:
-        rep_str = ""
+        if self.doc:
+            rep_str = "\n".join(self.doc)
+        else:
+            rep_str = ""
         if FunctionModifiers.VIRTUAL in self.modifiers or FunctionModifiers.ABSTRACT in self.modifiers:
             rep_str += "virtual "
         if self.return_type:

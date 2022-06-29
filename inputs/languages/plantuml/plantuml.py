@@ -30,6 +30,7 @@ PLANTUML_ARROWS = {
     "*--o",
 }
 
+# TODO: support the const modifier
 PLANTUML_FUNCTION_MODIFIER_MATCHER = {
     "{abstract}": FunctionModifiers.ABSTRACT,
     "{method}": None,

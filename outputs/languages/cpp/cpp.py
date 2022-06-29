@@ -19,7 +19,7 @@ from outputs.languages.cpp.cpp_enums import CppEnum
 from outputs.languages.cpp.cpp_functions import CppFunction
 from outputs.languages.cpp.cpp_namespaces import CppNamespaces
 
-from config import GENERATED_HEADER
+from config import CODEGEN_LOCK, GENERATED_HEADER
 
 class CppGenerator(LanguageSpecificGenerator):
     def translate(self, unit_translation: UnitTranslation) -> GeneratedOutput:
@@ -59,7 +59,7 @@ class CppGenerator(LanguageSpecificGenerator):
         INCLUDE_WARNINGS_SET.clear()
 
         log.debug(f"include set : {includes_set}")
-        ret_str = template.render(header=GENERATED_HEADER ,ns_list=self.ns_list, cls_list=self.cls_list,
+        ret_str = template.render(header=GENERATED_HEADER, CODEGEN_LOCK=CODEGEN_LOCK, ns_list=self.ns_list, cls_list=self.cls_list,
                                   include_guard=include_guard, includes_set=includes_set, enum_list=self.enum_list)
         file_name = unit_translation.name + ".hpp"
         return GeneratedOutput(name=file_name, content=ret_str)

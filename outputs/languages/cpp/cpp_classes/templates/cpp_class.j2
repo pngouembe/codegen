@@ -1,23 +1,4 @@
 class {{cls.name}} {
-{%- if cls.public_attributes %}
-public:
-    {%- for attr in cls.public_attributes %}
-    {{attr}};
-    {%- endfor -%}
-{%- endif -%}
-{%- if cls.private_attributes %}
-private:
-    {%- for attr in cls.private_attributes %}
-    {{attr}};
-    {%- endfor -%}
-{%- endif -%}
-{%- if cls.protected_attributes %}
-protected:
-    {%- for attr in cls.protected_attributes %}
-    {{attr}};
-    {%- endfor -%}
-{%- endif -%}
-
 {%- if cls.public_functions %}
 public:
     {%- for fct in cls.public_functions %}
@@ -34,6 +15,24 @@ private:
 protected:
     {%- for fct in cls.protected_functions %}
     {{fct}};
+    {%- endfor -%}
+{%- endif %}
+{%- if cls.public_attributes %}
+public:
+    {%- for attr in cls.public_attributes %}
+    {{attr}};
+    {%- endfor -%}
+{%- endif -%}
+{%- if cls.private_attributes %}
+private:
+    {%- for attr in cls.private_attributes %}
+    {{attr}};
+    {%- endfor -%}
+{%- endif -%}
+{%- if cls.protected_attributes %}
+protected:
+    {%- for attr in cls.protected_attributes %}
+    {{attr}};
     {%- endfor -%}
 {%- endif %}
 };

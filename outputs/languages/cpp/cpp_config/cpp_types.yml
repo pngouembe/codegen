@@ -2,8 +2,10 @@
 
 builtin:
   - bool
-  - int
   - char
+  - int
+  - long
+  - unsigned long
   - void
 
 <cstdint>:
@@ -89,4 +91,13 @@ builtin:
   - std::hash<std::pmr::u32string>
   - std::hash<std::pmr::wstring>
 
+<sys/socket.h>:
+  - struct sockaddr
+  - socklen_t
+
+<sys/types.h>:
+  - mode_t
+  - off_t
+  - size_t
+  - ssize_t
 ...

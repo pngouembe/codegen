@@ -203,9 +203,6 @@ def flatten_string(string: str) -> Tuple[str, Dict[str, str]]:
     ret_str = re.sub(r"^\!.*\s?", "", ret_str,
                      flags=re.MULTILINE)  # Plantuml commands
 
-
-    log.error(ret_str)
-    log.error(note_dict)
     return ret_str, note_dict
 
 

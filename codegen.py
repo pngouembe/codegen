@@ -2,9 +2,9 @@
 
 import argparse
 from os import makedirs, path, walk
+import re
 from typing import List, Tuple
 
-import mylogger
 from inputs.ifactory import ParserFactory
 from inputs.interfaces import LanguageSpecificParser
 from inputs.supported_languages import InputLanguages
@@ -13,6 +13,7 @@ from mylogger import DEBUG, log
 from outputs.interfaces import LanguageSpecificGenerator
 from outputs.ofactory import GeneratorFactory
 from outputs.supported_languages import OutputLanguages
+from config import CODEGEN_LOCK
 
 
 def get_argparser() -> argparse.ArgumentParser:
@@ -32,9 +33,11 @@ def get_argparser() -> argparse.ArgumentParser:
                         required=True)
     parser.add_argument("-d", "--dest",
                         help="Path to the output directory.")
-
     parser.add_argument("-v", "--verbose",
                         help="Enable debug logs.",
+                        action='store_true')
+    parser.add_argument("-f", "--force",
+                        help="Force the file generation.",
                         action='store_true')
 
     return parser
@@ -78,7 +81,7 @@ def main():
     file_count = len(paths)
     paths.sort()
     for i, (relpath, file) in enumerate(paths):
-        log.info(f"#{i+1}/{file_count}: Translating {file}")
+        log.info(f"#{i+1}/{file_count}: Translating '{file}'")
         input_lang = InputLanguages[args.input_language]
         output_lang = OutputLanguages[args.output_language]
 
@@ -100,9 +103,23 @@ def main():
         if not path.exists(translation.path):
             makedirs(translation.path)
 
-        log.info(f"Writting translation to {translation.get_path()}")
-        with open(translation.get_path(), "w") as f:
-            f.write(translation.content)
+        log.info(f"Writting translation to '{translation.get_path()}'")
+        # TODO: Skip before translating.
+        if args.force == False and path.exists(translation.get_path()):
+            with open(translation.get_path(), "r") as f:
+                if not re.search(CODEGEN_LOCK, f.read()):
+                    with open(translation.get_path(), "w") as f:
+                        f.write(translation.content)
+                else:
+                    base_name = path.basename(translation.get_path())
+                    msg_str = f"{base_name} was skipped as it has already been generated.\n"\
+                    "If you want to re-generate the file you can:\n"\
+                    "    - use the --force (-f) option of the script\n"\
+                    "    - Remove the CODEGEN_LOCK pharse at the end of your file\n"
+                    log.info(msg_str)
+        else:
+            with open(translation.get_path(), "w") as f:
+                f.write(translation.content)
         log.info(f"Translation successfully written")
 
 

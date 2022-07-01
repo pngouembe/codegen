@@ -17,6 +17,7 @@ class CppTypeModifier(Enum):
     CONST_REFERENCE = "& const "
     REFERENCE = "&"
 
+# TODO: support composed types for include set, eg: std::vector<std::string> shall include <vector> and <string>
 @dataclass(repr=False)
 class CppTypes(LanguageSpecificType):
     @classmethod

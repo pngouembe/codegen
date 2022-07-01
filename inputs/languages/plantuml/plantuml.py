@@ -86,6 +86,7 @@ def function_from_str(str: str) -> InternalFunction:
     else:
         try:
             args, post_args = tmp.rsplit(")", maxsplit=1)
+            post_args = post_args.strip()
         except ValueError:
             args = tmp
 
@@ -105,18 +106,15 @@ def function_from_str(str: str) -> InternalFunction:
         except KeyError:
             f_visibility = Visibility.PUBLIC
         else:
-            pre_name = pre_name[1::]
+            pre_name = pre_name[1::].strip()
 
-        for elem in pre_name.split():
-            try:
-                modifiers.add(PLANTUML_FUNCTION_MODIFIER_MATCHER[elem])
-            except KeyError:
-                pass
-            else:
-                continue
+        for mod in PLANTUML_FUNCTION_MODIFIER_MATCHER.keys():
+            if mod in pre_name:
+                modifiers.add(PLANTUML_FUNCTION_MODIFIER_MATCHER[mod])
+                pre_name = re.sub(mod, "", pre_name).strip()
 
-            # At this point the elem can be considered as a return type
-            f_type = InternalType.from_string(elem)
+        # At this point the pre_name can be considered as a return type
+        f_type = InternalType.from_string(pre_name)
 
     arg_list = list()
     if args:
@@ -124,7 +122,7 @@ def function_from_str(str: str) -> InternalFunction:
             arg = arg.strip()
             arg_list.append(InternalArgument.from_string(arg))
 
-    return InternalFunction(name=f_name, arguments=arg_list, return_type=f_type, visibility=f_visibility, modifiers=modifiers)
+    return InternalFunction(name=f_name, arguments=arg_list, return_type=f_type, visibility=f_visibility, modifiers=modifiers, extra_elem=post_args)
 
 # TODO: Support Packages
 
@@ -213,6 +211,7 @@ class PlantumlParser(LanguageSpecificParser):
         with open(file, "r") as f:
             flat_content, note_dict = flatten_string(f.read())
             note_keys = note_dict.keys()
+            used_notes = list()
             file_content = flat_content.splitlines()
 
         unit = UnitTranslation(name=path.splitext(path.basename(file))[0])
@@ -243,8 +242,16 @@ class PlantumlParser(LanguageSpecificParser):
                     else:
                         function = function_from_str(line)
                         for k in note_keys:
-                            if function.name in k:
+                            tmp = k
+                            if '"' in tmp:
+                                m = re.search(r"(\w+)\(", tmp)
+                                if m:
+                                    tmp = m.group(1)
+
+                            if k not in used_notes and function.name == tmp.rsplit("::", maxsplit=1)[-1]:
                                 function.doc = note_dict[k].splitlines()
+                                used_notes.append(k)
+                                break
 
                         log.debug(f"function repr: {function}")
                         try:

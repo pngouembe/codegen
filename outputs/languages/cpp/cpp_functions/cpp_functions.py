@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+import re
 
 from internal.functions import FunctionModifiers, InternalFunction
 from outputs.interfaces import LanguageSpecificFunction
@@ -6,6 +7,9 @@ from outputs.interfaces import LanguageSpecificFunction
 from ..cpp_arguments import CppArgument
 from ..cpp_types import CppTypes
 
+CPP_FUNCTION_MODIFIERS = {
+    "const": FunctionModifiers.CONST
+}
 
 @dataclass(repr=False)
 class CppFunction(LanguageSpecificFunction):
@@ -22,12 +26,18 @@ class CppFunction(LanguageSpecificFunction):
             doc_list.append("     */\n    ")
         else:
             doc_list = list()
+        if internal.extra_elem:
+            for mod in CPP_FUNCTION_MODIFIERS.keys():
+                if mod in internal.extra_elem:
+                    internal.modifiers.add(CPP_FUNCTION_MODIFIERS[mod])
+                    internal.extra_elem = re.sub(mod, "", internal.extra_elem)
         return cls(name=internal.name,
                    arguments=a_list,
                    return_type=return_type,
                    visibility=internal.visibility,
                    modifiers=internal.modifiers,
-                   doc=doc_list)
+                   doc=doc_list,
+                   extra_elem=internal.extra_elem)
 
     def __repr__(self) -> str:
         if self.doc:
@@ -47,5 +57,8 @@ class CppFunction(LanguageSpecificFunction):
 
         if FunctionModifiers.ABSTRACT in self.modifiers:
             rep_str += " = 0"
+
+        if self.extra_elem:
+            rep_str += f" {self.extra_elem}"
 
         return rep_str

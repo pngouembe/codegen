@@ -23,6 +23,7 @@ from config import CODEGEN_LOCK, GENERATED_HEADER
 
 class CppGenerator(LanguageSpecificGenerator):
     def translate(self, unit_translation: UnitTranslation) -> GeneratedOutput:
+        # TODO: Move the CPP template in the CPP module
         env = Environment(loader=PackageLoader("outputs"))
 
         try:

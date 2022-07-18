@@ -126,7 +126,7 @@ def function_from_str(str: str) -> InternalFunction:
 
 # TODO: Support Packages
 
-
+# TODO: Fix the note content that contains lines starting with the Note word
 def flatten_string(string: str) -> Tuple[str, Dict[str, str]]:
     ret_str = string
 
@@ -243,6 +243,8 @@ class PlantumlParser(LanguageSpecificParser):
                         function = function_from_str(line)
                         for k in note_keys:
                             tmp = k
+                            #TODO: Ensure that this is not dependant of the note order in the plantuml
+                            # Check signature for that
                             if '"' in tmp:
                                 m = re.search(r"(\w+)\(", tmp)
                                 if m:

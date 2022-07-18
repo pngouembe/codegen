@@ -5,6 +5,11 @@ builtin:
   - char
   - int
   - long
+  - signed char
+  - signed int
+  - signed long
+  - unsigned char
+  - unsigned int
   - unsigned long
   - void
 
@@ -20,6 +25,8 @@ builtin:
   - float32_t
   - float64_t
 
+<functional>:
+  - std::function
 
 <future>:
   - promise
@@ -100,4 +107,7 @@ builtin:
   - off_t
   - size_t
   - ssize_t
+
+<vector>:
+  - std::vector
 ...

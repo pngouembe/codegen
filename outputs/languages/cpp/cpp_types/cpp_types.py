@@ -56,6 +56,7 @@ class CppTypes(LanguageSpecificType):
                         INCLUDE_WARNINGS_SET.add(
                             f"Warning {s} is an unknown type")
                 else:
+                    # TODO: fix the empty type not found warning
                     INCLUDE_WARNINGS_SET.add(
                         f"Warning {s} is an unknown type")
         return cls(name=internal.name, namespace=internal.namespace, namespace_sep=CPP_NAMESPACE_SEP)

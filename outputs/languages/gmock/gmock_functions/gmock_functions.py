@@ -33,10 +33,7 @@ class GmockFunction(LanguageSpecificFunction):
                    extra_elem=internal.extra_elem)
 
     def __repr__(self) -> str:
-        if FunctionModifiers.CONST in self.modifiers:
-            rep_str = "MOCK_METHOD_CONST("
-        else:
-            rep_str = "MOCK_METHOD("
+        rep_str = "MOCK_METHOD("
         if self.return_type:
             rep_str += f"{self.return_type!r}, "
         else:
@@ -44,9 +41,12 @@ class GmockFunction(LanguageSpecificFunction):
         rep_str += f"{self.name}, "
         args_str = ", ".join([repr(a.type) for a in self.arguments if a.type is not None])
         rep_str += f"({args_str}), "
-        modifier_str = ""
+        modifier_list = list()
         if FunctionModifiers.VIRTUAL in self.modifiers or FunctionModifiers.ABSTRACT in self.modifiers:
-            modifier_str += "override"
+            modifier_list.append("override")
+        if FunctionModifiers.CONST in self.modifiers:
+            modifier_list.append("const")
+        modifier_str = ', '.join(modifier_list)
         rep_str += f"({modifier_str})"
         rep_str += ")"
         return rep_str

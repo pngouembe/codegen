@@ -84,10 +84,25 @@ def function_from_str(str: str) -> InternalFunction:
         pre_args = str
         args = post_args = None
     else:
-        try:
-            args, post_args = tmp.rsplit(")", maxsplit=1)
-            post_args = post_args.strip()
-        except ValueError:
+        bracket_count = 1
+        index = None
+        for i, c in enumerate(tmp):
+            if c == "(":
+                bracket_count += 1
+            if c == ")":
+                bracket_count -= 1
+            if bracket_count == 0:
+                index = i
+                break
+
+        post_args = None
+        if index == 0:
+            args = None
+            post_args = tmp[index+1:].strip()
+        elif index > 0:
+            args = tmp[:index]
+            post_args = tmp[index+1:].strip()
+        else:
             args = tmp
 
     try:

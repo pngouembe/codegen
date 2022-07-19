@@ -113,8 +113,9 @@ def function_from_str(str: str) -> InternalFunction:
                 modifiers.add(PLANTUML_FUNCTION_MODIFIER_MATCHER[mod])
                 pre_name = re.sub(mod, "", pre_name).strip()
 
-        # At this point the pre_name can be considered as a return type
-        f_type = InternalType.from_string(pre_name)
+        if pre_name:
+            # At this point the pre_name can be considered as a return type
+            f_type = InternalType.from_string(pre_name)
 
     arg_list = list()
     if args:

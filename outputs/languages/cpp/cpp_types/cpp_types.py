@@ -23,12 +23,10 @@ class CppTypes(LanguageSpecificType):
     @classmethod
     def from_internal(cls, internal: InternalType):
         internal.namespace_sep = CPP_NAMESPACE_SEP
-        tmp_str = repr(internal)
+        tmp_str = internal.name if internal.name else "void"
         if internal.namespace:
             tmp_str = internal.namespace_sep.join(
                 internal.namespace + [internal.name])
-        else:
-            tmp_str = internal.name
 
         tmp_str = tmp_str.replace("&", " &").replace("*", " *")
         for m in [mod.value for mod in CppTypeModifier]:
@@ -56,7 +54,6 @@ class CppTypes(LanguageSpecificType):
                         INCLUDE_WARNINGS_SET.add(
                             f"Warning {s} is an unknown type")
                 else:
-                    # TODO: fix the empty type not found warning
                     INCLUDE_WARNINGS_SET.add(
                         f"Warning {s} is an unknown type")
         return cls(name=internal.name, namespace=internal.namespace, namespace_sep=CPP_NAMESPACE_SEP)

@@ -1,0 +1,35 @@
+{#- This is a GMOCK code generator jinja2 template -#}
+{#- TODO: Add the warning as an input of the template -#}
+{{ header }}
+
+/*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
+/* /!\ WARNING: This code was generated using the                             */
+/* https://github.com/pngouembe/codegen tool. If you want to modify this file,*/
+/* be aware that if the tool is launched again with the  --force flag, your   */
+/* modifications will be overwritten. The same thing can happen if you remove */
+/* the CODEGEN_LOCK line at the bottom of the file                            */
+/*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
+
+#ifndef {{include_guard|upper}}
+#define {{include_guard|upper}}
+
+// GMock framework
+#include <gmock/gmock.h>
+
+// Inherited interface
+#include "{{ include }}"
+
+{%- if cls_list -%}
+{%- for cls in cls_list %}
+{{cls}}
+{% endfor -%}
+{%- endif -%} {# classes #}
+
+{%- if ns_list -%}
+{%- for ns in ns_list -%}
+{{ns}}
+{%- endfor -%} {# namespace loop #}
+{%- endif -%} {# namespaces #}
+#endif //{{include_guard|upper}}
+
+/* {{ CODEGEN_LOCK }} */

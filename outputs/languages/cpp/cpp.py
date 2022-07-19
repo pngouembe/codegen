@@ -26,7 +26,6 @@ CPP_TEMPLATE = "cpp_template.j2"
 
 class CppGenerator(LanguageSpecificGenerator):
     def translate(self, unit_translation: UnitTranslation) -> GeneratedOutput:
-        # TODO: Move the CPP template in the CPP module
         env = Environment(loader=FileSystemLoader(CPP_TEMPLATE_PATH))
 
         try:

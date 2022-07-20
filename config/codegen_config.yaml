@@ -1,0 +1,6 @@
+---
+# Note any relative path will be evaluated relative to this config file
+
+header_path: ./generated_code_header.txt
+cpp_custom_config_path: ./cpp/cpp_custom_config.yaml
+...

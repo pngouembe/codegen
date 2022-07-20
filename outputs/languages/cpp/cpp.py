@@ -3,6 +3,7 @@
 from os import path
 
 import yaml
+from config.config import CodegenConfig
 from internal.translation import GeneratedOutput, UnitTranslation
 from jinja2 import Environment, FileSystemLoader
 from mylogger import log
@@ -19,19 +20,16 @@ from outputs.languages.cpp.cpp_enums import CppEnum
 from outputs.languages.cpp.cpp_functions import CppFunction
 from outputs.languages.cpp.cpp_namespaces import CppNamespaces
 
-from config import CODEGEN_LOCK, GENERATED_HEADER
-
 CPP_TEMPLATE_PATH = path.join(path.dirname(__file__), "templates/")
 CPP_TEMPLATE = "cpp_template.j2"
 
 class CppGenerator(LanguageSpecificGenerator):
-    def translate(self, unit_translation: UnitTranslation) -> GeneratedOutput:
+    def translate(self, unit_translation: UnitTranslation, config: CodegenConfig) -> GeneratedOutput:
         env = Environment(loader=FileSystemLoader(CPP_TEMPLATE_PATH))
 
-        try:
-            with open(path.join(INCLUDE_CFG_FILE)) as f:
-                INCLUDE_FILES_DICT.update(yaml.safe_load(f))
-        except FileNotFoundError:
+        if config.language_custom_config.CPP.custom_include_file_dict:
+            INCLUDE_FILES_DICT.update(config.language_custom_config.CPP.custom_include_file_dict)
+        else:
             log.warn(
                 f'No custom includes file provided, using the types found in "{STD_INCLUDE_FILE}"')
 
@@ -62,7 +60,7 @@ class CppGenerator(LanguageSpecificGenerator):
         INCLUDE_WARNINGS_SET.clear()
 
         log.debug(f"include set : {includes_set}")
-        ret_str = template.render(header=GENERATED_HEADER, CODEGEN_LOCK=CODEGEN_LOCK, ns_list=self.ns_list, cls_list=self.cls_list,
+        ret_str = template.render(header=config.header, CODEGEN_LOCK=config.codegen_lock, ns_list=self.ns_list, cls_list=self.cls_list,
                                   include_guard=include_guard, includes_set=includes_set, enum_list=self.enum_list)
         file_name = unit_translation.name + ".hpp"
         return GeneratedOutput(name=file_name, content=ret_str)

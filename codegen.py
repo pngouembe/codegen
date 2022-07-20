@@ -4,6 +4,7 @@ import argparse
 from os import makedirs, path, walk
 import re
 from typing import List, Tuple
+from config.config import CodegenConfig
 
 from inputs.ifactory import ParserFactory
 from inputs.interfaces import LanguageSpecificParser
@@ -13,8 +14,9 @@ from mylogger import DEBUG, log
 from outputs.interfaces import LanguageSpecificGenerator
 from outputs.ofactory import GeneratorFactory
 from outputs.supported_languages import OutputLanguages
-from config import CODEGEN_LOCK
+import config
 
+DEFAULT_CONFIG_PATH = path.join(path.dirname(__file__), "config", "codegen_config.yaml")
 
 def get_argparser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description="Code generation tool.")
@@ -32,13 +34,19 @@ def get_argparser() -> argparse.ArgumentParser:
                                 If a directory is given, all the files in it are translated.""",
                         required=True)
     parser.add_argument("-d", "--dest",
-                        help="Path to the output directory.")
+                        help="""Path to the output directory. If not given, the files
+                        will be generated in the same place as the source""")
     parser.add_argument("-v", "--verbose",
                         help="Enable debug logs.",
                         action='store_true')
     parser.add_argument("-f", "--force",
                         help="Force the file generation.",
                         action='store_true')
+    parser.add_argument("-c", "--config",
+                        help="""Path to the main configuration file.
+                                It defaults to the codegen_config.yaml file located in
+                                the config folder at the root of the codegen repo.""",
+                        default=DEFAULT_CONFIG_PATH)
 
     return parser
 
@@ -58,7 +66,7 @@ def get_files(base_paths: List[str]) -> List[Tuple[str, str]]:
     return paths
 
 
-def translate_file(path: str, output: OutputLanguages, input: InputLanguages) -> GeneratedOutput:
+def translate_file(path: str, output: OutputLanguages, input: InputLanguages, config: CodegenConfig) -> GeneratedOutput:
     parser: LanguageSpecificParser = ParserFactory.create_parser(input)
     log.info("Parsing the input file")
     unit: UnitTranslation = parser.translate(path)
@@ -67,14 +75,16 @@ def translate_file(path: str, output: OutputLanguages, input: InputLanguages) ->
     generator: LanguageSpecificGenerator = GeneratorFactory.create_generator(
         output)
 
-    return generator.translate(unit)
-
+    return generator.translate(unit_translation=unit, config=config)
 
 def main():
     args = get_argparser().parse_args()
 
+
     if args.verbose:
         log.setLevel(DEBUG)
+
+    codegen_config = config.CodegenConfig.load(args.config)
 
     paths = get_files([args.path])
 
@@ -90,7 +100,7 @@ def main():
 
         log.info(f"Starting translation")
         translation: GeneratedOutput = translate_file(
-            path=file, input=input_lang, output=output_lang)
+            path=file, input=input_lang, output=output_lang, config=codegen_config)
         log.info(f"Translation done")
         if args.dest:
             dest = args.dest
@@ -107,7 +117,7 @@ def main():
         # TODO: Skip before translating.
         if args.force == False and path.exists(translation.get_path()):
             with open(translation.get_path(), "r") as f:
-                if not re.search(CODEGEN_LOCK, f.read()):
+                if not re.search(codegen_config.codegen_lock, f.read()):
                     with open(translation.get_path(), "w") as f:
                         f.write(translation.content)
                 else:

@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+from config.config import CodegenConfig
 
 from internal.arguments import InternalArgument
 from internal.attributes import InternalAttribute
@@ -12,7 +13,7 @@ from internal.variable import InternalVariable
 
 
 class LanguageSpecificGenerator:
-    def translate(self, unit_translation: UnitTranslation) -> GeneratedOutput:
+    def translate(self, unit_translation: UnitTranslation, config: CodegenConfig) -> GeneratedOutput:
         pass
 
 

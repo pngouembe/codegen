@@ -1,11 +1,12 @@
 #! python3
 
 import argparse
-from os import makedirs, path, walk
 import re
+from os import makedirs, path, walk
 from typing import List, Tuple
-from config.config import CodegenConfig
 
+import config
+from config.config import CodegenConfig
 from inputs.ifactory import ParserFactory
 from inputs.interfaces import LanguageSpecificParser
 from inputs.supported_languages import InputLanguages
@@ -14,7 +15,6 @@ from mylogger import DEBUG, log
 from outputs.interfaces import LanguageSpecificGenerator
 from outputs.ofactory import GeneratorFactory
 from outputs.supported_languages import OutputLanguages
-import config
 
 DEFAULT_CONFIG_PATH = path.join(path.dirname(__file__), "config", "codegen_config.yaml")
 
@@ -92,6 +92,7 @@ def main():
     paths.sort()
     for i, (relpath, file) in enumerate(paths):
         log.info(f"#{i+1}/{file_count}: Translating '{file}'")
+        # TODO: Detect input language
         input_lang = InputLanguages[args.input_language]
         output_lang = OutputLanguages[args.output_language]
 
@@ -116,10 +117,12 @@ def main():
         log.info(f"Writting translation to '{translation.get_path()}'")
         # TODO: Skip before translating.
         if args.force == False and path.exists(translation.get_path()):
-            with open(translation.get_path(), "r") as f:
+            with open(translation.get_path(), "r+") as f:
                 if not re.search(codegen_config.codegen_lock, f.read()):
-                    with open(translation.get_path(), "w") as f:
-                        f.write(translation.content)
+                    # erase the content of the file and write the new content
+                    f.seek(0)
+                    f.truncate(0)
+                    f.write(translation.content)
                 else:
                     base_name = path.basename(translation.get_path())
                     msg_str = f"{base_name} was skipped as it has already been generated.\n"\

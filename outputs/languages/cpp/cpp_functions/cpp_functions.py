@@ -30,7 +30,7 @@ class CppFunction(LanguageSpecificFunction):
             for mod in CPP_FUNCTION_MODIFIERS.keys():
                 if mod in internal.extra_elem:
                     internal.modifiers.add(CPP_FUNCTION_MODIFIERS[mod])
-                    internal.extra_elem = re.sub(mod, "", internal.extra_elem)
+                    internal.extra_elem = re.sub(mod, "", internal.extra_elem).strip()
         return cls(name=internal.name,
                    arguments=a_list,
                    return_type=return_type,

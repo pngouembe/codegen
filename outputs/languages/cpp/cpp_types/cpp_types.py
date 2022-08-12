@@ -43,6 +43,8 @@ class CppTypes(LanguageSpecificType):
                 include_file = INCLUDE_FILE_MATCHER_DICT[s]
                 if include_file != "builtin":
                     INCLUDE_FILES_SET.add(INCLUDE_FILE_MATCHER_DICT[s])
+                    log.debug(f"Added the {include_file} to allow {s} inclusion")
+
             except KeyError:
                 if CPP_NAMESPACE_SEP in s:
                     s = s.rsplit(CPP_NAMESPACE_SEP, maxsplit=1)[-1]

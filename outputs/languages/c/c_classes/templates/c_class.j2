@@ -1,0 +1,9 @@
+{%- for fct in cls.functions %}
+{{fct}};
+{%- endfor %}
+
+struct {{cls.name}} {
+{%- for fct in cls.functions %}
+    {{fct.to_fct_pointer()}};
+{%- endfor %}
+};

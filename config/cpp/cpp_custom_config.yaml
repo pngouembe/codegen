@@ -1,8 +1,0 @@
----
-# Note any relative path will be evaluated relative to this config file
-
-# Path to the custom includes file
-# If the path is not an absolute path, it will be evaluated from the cpp config folder
-custom_include_file_dict_path: ./cpp_custom_includes.yml
-
-...

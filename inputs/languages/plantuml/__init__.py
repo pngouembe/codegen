@@ -1,1 +1,0 @@
-from .plantuml import PlantumlParser

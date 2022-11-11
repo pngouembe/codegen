@@ -1,8 +1,0 @@
-enum {{enum.name}} {
-{%- if enum.attributes %}
-    {%- for attr in enum.attributes[:-1] %}
-    {{attr}},
-    {%- endfor %}
-    {{enum.attributes[-1]}}
-{%- endif %}
-};

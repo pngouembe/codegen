@@ -1,1 +1,0 @@
-CODEGEN_LOCK: if this phrase is present, codegen will not generate this file again

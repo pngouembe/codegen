@@ -8,5 +8,9 @@ class CTypes(CodegenType):
     def from_str(cls, string: str):
         return cls(name=string.strip())
 
+    @classmethod
+    def from_inter_lang(cls, elem: CodegenType):
+        return cls(elem.name)
+
     def to_str(self) -> str:
         return self.name

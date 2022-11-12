@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 from languages.c.c_types import CTypes
-from languages.c.c_variables import CVariable
+from languages.c.c_argument import CArgument
 from intermediate.functions import CodegenFunction
 
 
@@ -12,11 +12,19 @@ class CFunction(CodegenFunction):
         return_type = CTypes.from_str(return_type)
         name, args_str = tmp.split("(", maxsplit=1)
         args_str = args_str.replace(")", "").replace(";", "")
-        args = [CVariable.from_str(arg) for arg in args_str.split(",")]
+        args = [CArgument.from_str(arg) for arg in args_str.split(",")]
         return cls(
             return_type=return_type,
             name=name,
             args=args
+        )
+
+    @classmethod
+    def from_inter_lang(cls, elem: CodegenFunction):
+        return cls(
+            CTypes.from_inter_lang(elem.return_type),
+            elem.name,
+            [CArgument.from_inter_lang(arg) for arg in elem.args]
         )
 
     def to_str(self) -> str:

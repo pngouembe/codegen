@@ -9,7 +9,11 @@ class CArgument(CodegenVariable):
     @classmethod
     def from_str(cls, string: str):
         string = string.replace(";", "")
-        type_str, name = string.rsplit(maxsplit=1)
+        if ' ' in string:
+            type_str, name = string.rsplit(maxsplit=1)
+        else:
+            type_str = "void"
+            name = ""
         return cls(
             name=name.strip(),
             type=CTypes.from_str(type_str.strip()),

@@ -1,6 +1,9 @@
 from dataclasses import dataclass
 
 
+class MissingTypeError(Exception):
+    pass
+
 @dataclass
 class CodegenType:
     name: str

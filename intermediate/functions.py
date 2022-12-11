@@ -10,6 +10,7 @@ class CodegenFunction:
     name: str
     args: List[CodegenVariable]
 
+
     def to_inter_lang(self):
         return CodegenFunction(
             self.return_type.to_inter_lang(),

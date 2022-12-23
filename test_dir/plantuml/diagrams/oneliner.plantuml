@@ -1,0 +1,16 @@
+@startuml
+
+' dummy comment
+namespace coucou {
+class shortDummyObj
+
+class dummyObj {
+    + public_num : int
+    # protected_num : int
+    - private_num : int
+    + public_fct() : void
+    # protected_fct(num : int) : int
+    - private_fct(num : int, letter : char) : char
+}
+}
+@enduml

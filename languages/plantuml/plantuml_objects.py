@@ -1,6 +1,6 @@
 from dataclasses import dataclass
-from languages.plantuml.plantuml_parser import PlantumlParser
-from languages.plantuml.plantuml_variable import PlantumlVariable
+from typing import Iterator
+from languages.plantuml.plantuml_variables import PlantumlVariable
 
 from languages.plantuml.plantuml_functions import PlantumlFunction
 from intermediate.objects import CodegenObject
@@ -27,11 +27,9 @@ class PlantumlObject(CodegenObject):
             }
         }
 
-        flatten_str = PlantumlParser.flattenPlantumlString(string)
-
         # TODO: Rework the extraction of the object body
         object_body = []
-        for line in flatten_str.splitlines():
+        for line in string.splitlines():
             if line.startswith("class"):
                 name = line.split()[1]
                 continue
@@ -49,7 +47,7 @@ class PlantumlObject(CodegenObject):
             except KeyError:
                 elements = obj_elements["+"]
             else:
-                #removing the visibility marker at the beginning
+                # removing the visibility marker at the beginning
                 line = line.lstrip(line[0]).strip()
 
             if "(" in line:
@@ -86,6 +84,18 @@ class PlantumlObject(CodegenObject):
             [PlantumlFunction.from_inter_lang(attr)
              for attr in elem.private_functions]
         )
+
+    @classmethod
+    def from_iterator(cls, iterator: Iterator, first_line: str):
+        lines = [first_line]
+
+        if "{" in first_line:
+            for line in iterator:
+                lines.append(line)
+                if "}" in line:
+                    break
+
+        return PlantumlObject.from_str("\n".join(lines))
 
     def to_str(self) -> str:
         object_str = f"class {self.name}\n{{\n"

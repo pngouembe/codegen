@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 from languages.plantuml.plantuml_types import PlantumlType
-from languages.plantuml.plantuml_variable import PlantumlVariable
+from languages.plantuml.plantuml_variables import PlantumlVariable
 from intermediate.functions import CodegenFunction
 
 

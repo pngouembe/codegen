@@ -1,11 +1,18 @@
 from dataclasses import dataclass
+from jinja2 import Environment, PackageLoader, select_autoescape
 from languages.c.c_variables import CVariable
-from languages.c.c_functions import CFunction
+from languages.c.c_functions import CFunctionPointer
 from intermediate.objects import CodegenObject
 
 
 @dataclass
 class CObject(CodegenObject):
+
+    def __post_init__(self) -> None:
+        self.env = Environment(
+            loader=PackageLoader(__package__),
+            autoescape=select_autoescape)
+
     @classmethod
     def from_str(cls, string: str):
         string = string.removeprefix("struct").strip()
@@ -16,7 +23,7 @@ class CObject(CodegenObject):
         functions = []
         for func in body.split(";"):
             if func:
-                functions.append(CFunction.from_str(func))
+                functions.append(CFunctionPointer.from_str(func))
         return cls(
             name=name,
             public_attributes=[],
@@ -37,18 +44,14 @@ class CObject(CodegenObject):
              for attr in elem.protected_attributes],
             [CVariable.from_inter_lang(attr)
              for attr in elem.private_attributes],
-            [CFunction.from_inter_lang(attr)
+            [CFunctionPointer.from_inter_lang(attr)
              for attr in elem.public_functions],
-            [CFunction.from_inter_lang(attr)
+            [CFunctionPointer.from_inter_lang(attr)
              for attr in elem.protected_functions],
-            [CFunction.from_inter_lang(attr)
+            [CFunctionPointer.from_inter_lang(attr)
              for attr in elem.private_functions]
         )
 
     def to_str(self) -> str:
-        function_str = str("\n".join([func.to_str()
-                                      for func in self.public_functions]))
-
-        print(function_str)
-        ret_str = "struct %s { %s };" % (self.name, function_str)
-        return ret_str
+        j2_template = self.env.get_template("c_object.j2")
+        return j2_template.render(**self.__dict__)

@@ -1,0 +1,20 @@
+struct {{ name }} {
+{%- for attr in public_attributes %}
+    {{ attr.to_str() }}
+{% endfor %}
+{%- for attr in protected_attributes %}
+    {{ attr.to_str() }}
+{% endfor %}
+{%- for attr in private_attributes %}
+    {{ attr.to_str() }}
+{% endfor %}
+{%- for func in public_functions %}
+    {{ func.to_str() }}
+{% endfor %}
+{%- for func in protected_functions %}
+    {{ func.to_str() }}
+{% endfor %}
+{%- for func in private_functions %}
+    {{ func.to_str() }}
+{% endfor %}
+};

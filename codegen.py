@@ -67,13 +67,9 @@ def main():
 
     translation_unit = PlantumlParser.parse_file(
         Path("./test_dir/plantuml/diagrams/oneliner.plantuml")).to_inter_lang()
-    print(translation_unit)
-
-    plantuml_tu = PlantumlTranslationUnit.from_inter_lang(translation_unit)
-    print(plantuml_tu)
-
     c_tu = CTranslationUnit.from_inter_lang(translation_unit)
-    print(c_tu)
+    with open("./test_dir/plantuml/generated_code/oneliner.h", "w") as f:
+        f.write(c_tu.to_str())
 
 if "__main__" == __name__:
     main()

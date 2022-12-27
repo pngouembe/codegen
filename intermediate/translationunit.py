@@ -27,3 +27,6 @@ class CodegenTranslationUnit:
             self.objects.append(element.to_inter_lang())
         else:
             raise ValueError
+
+    def to_str(self) -> str:
+        return "\n".join([elem.to_str() for elem in (self.variables + self.funtions + self.objects)])

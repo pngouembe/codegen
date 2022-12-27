@@ -28,5 +28,20 @@ class CFunction(CodegenFunction):
         )
 
     def to_str(self) -> str:
-        args_str = ",".join([arg.to_str() for arg in self.args])
+        args_str = ", ".join([arg.to_str() for arg in self.args])
         return f"{self.return_type.to_str()} {self.name}({args_str});"
+
+
+@dataclass
+class CFunctionPointer(CFunction):
+    @classmethod
+    def from_function(cls, function: CFunction):
+        cls(
+            function.return_type,
+            function.name,
+            function.args
+        )
+
+    def to_str(self) -> str:
+        args_str = ", ".join([arg.type.to_str() for arg in self.args])
+        return f"{self.return_type.to_str()} (*{self.name})({args_str});"
